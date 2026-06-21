@@ -74,7 +74,7 @@ const MOCK_CATCHES = [
 
 // ── Physics aquarium ──────────────────────────────────────────────────────────
 
-function Aquarium({ fish, decorations, onMoveDecoration, scale = DECO_SCALE.panel, maxDecorations = Infinity }) {
+function Aquarium({ fish, decorations, onMoveDecoration, scale = DECO_SCALE.panel, maxDecorations = Infinity, readOnly = false }) {
   const containerRef = useRef(null);
   const elemsRef     = useRef([]);
   const stateRef     = useRef([]);
@@ -274,28 +274,33 @@ function Aquarium({ fish, decorations, onMoveDecoration, scale = DECO_SCALE.pane
         <div className="seaweed" style={{ left: "40%", height: 22, animationDelay: "-1.2s" }} />
         <div className="seaweed" style={{ right: "12%",height: 36, animationDelay: "-2.1s" }} />
 
-        {decorations.slice(0, maxDecorations).map(dec => {
+        {decorations.map(dec => {
           const meta = getDecoration(dec.id);
           if (!meta) return null;
+          const depthClass = meta.depth === "back" ? "tank-decoration--back" : "tank-decoration--front";
+          const roClass    = readOnly ? "tank-decoration--readonly" : "";
           return (
             <div
               key={dec.id}
-              className="tank-decoration"
+              className={`tank-decoration ${depthClass} ${roClass}`}
               style={{ left: `${dec.xPos}%` }}
-              onMouseDown={e => handleDecoDragStart(e, dec.id)}
-              title={`${meta.name} — drag to reposition`}
+              onMouseDown={readOnly ? undefined : e => handleDecoDragStart(e, dec.id)}
+              title={readOnly ? meta.name : `${meta.name} — drag to reposition`}
             >
               <img
                 className="tank-decoration-img"
                 src={decoImg(meta.file)}
                 alt={meta.name}
                 draggable={false}
-                style={{ width: meta.w * scale, height: meta.h * scale }}
+                style={{ width: meta.w * scale * (meta.scale ?? 1), height: meta.h * scale * (meta.scale ?? 1) }}
               />
             </div>
           );
         })}
       </div>
+      {readOnly && (
+        <div className="tank-readonly-hint">Open full screen to arrange decorations</div>
+      )}
     </div>
   );
 }
@@ -1018,7 +1023,6 @@ export default function SidePanel() {
         <button
           className={`fish-btn ${baitCount === 0 || selectedBaitCount === 0 ? "empty" : ""}`}
           onClick={goFish}
-          disabled={baitCount === 0 || selectedBaitCount === 0}
         >
           <img className="fish-btn-icon item-art" src={comboImg(equippedRod.id, activeBait.id)} alt="" />
           <span className="fish-btn-label">
@@ -1030,10 +1034,11 @@ export default function SidePanel() {
       <div className="aquarium-area">
         <Aquarium
           fish={top10}
-          decorations={ownedDecorations}
+          decorations={ownedDecorations.filter(d => d.visible !== false)}
           onMoveDecoration={moveDecoration}
           scale={DECO_SCALE.panel}
-          maxDecorations={4}
+          maxDecorations={Infinity}
+          readOnly
         />
         {activeCasts.length > 0 && (
           <FishingOverlay

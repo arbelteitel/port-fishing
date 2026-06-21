@@ -181,10 +181,11 @@ function Tank({ fish, decorations, onMoveDecoration }) {
         {decorations.map(dec => {
           const meta = getDecoration(dec.id);
           if (!meta) return null;
+          const depthClass = meta.depth === "back" ? "tank-decoration--back" : "tank-decoration--front";
           return (
             <div
               key={dec.id}
-              className="tank-decoration"
+              className={`tank-decoration ${depthClass}`}
               style={{ left: `${dec.xPos}%` }}
               onMouseDown={e => handleDecoDragStart(e, dec.id)}
               title={`${meta.name} — drag to reposition`}
@@ -194,11 +195,76 @@ function Tank({ fish, decorations, onMoveDecoration }) {
                 src={decoImg(meta.file)}
                 alt={meta.name}
                 draggable={false}
-                style={{ width: meta.w * DECO_SCALE.full, height: meta.h * DECO_SCALE.full }}
+                style={{ width: meta.w * DECO_SCALE.full * (meta.scale ?? 1), height: meta.h * DECO_SCALE.full * (meta.scale ?? 1) }}
               />
             </div>
           );
         })}
+      </div>
+    </div>
+  );
+}
+
+// ── Editor inventory sidebar ─────────────────────────────────────────────────
+
+function EditorPanel({ decorations, onToggleVisibility, onMoveToFront, onMoveToBack }) {
+  const visible = decorations.filter(d => d.visible !== false);
+  const stashed = decorations.filter(d => d.visible === false);
+
+  function DecoRow({ dec, isStashed }) {
+    const meta = getDecoration(dec.id);
+    if (!meta) return null;
+    return (
+      <div className={`editor-deco-row${isStashed ? ' stashed' : ''}`}>
+        <img
+          className="editor-deco-thumb"
+          src={decoImg(meta.file)}
+          alt={meta.name}
+          draggable={false}
+        />
+        <div className="editor-deco-info">
+          <span className="editor-deco-name">{meta.name}</span>
+        </div>
+        <div className="editor-deco-actions">
+          {!isStashed && (
+            <>
+              <button className="editor-action-btn" onClick={() => onMoveToFront(dec.id)} title="Move to front">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 2L7 12M7 2L3 6M7 2L11 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              </button>
+              <button className="editor-action-btn" onClick={() => onMoveToBack(dec.id)} title="Move to back">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 12L7 2M7 12L3 8M7 12L11 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              </button>
+            </>
+          )}
+          <button
+            className={`editor-action-btn ${isStashed ? 'restore' : 'stash'}`}
+            onClick={() => onToggleVisibility(dec.id)}
+            title={isStashed ? 'Restore to aquarium' : 'Stash'}
+          >
+            {isStashed ? '👁' : '👁‍🗨'}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="editor-panel">
+      <div className="editor-panel-header">
+        <span className="editor-panel-title">Decorations</span>
+        <span className="editor-panel-count">{visible.length} placed</span>
+      </div>
+      <div className="editor-panel-list">
+        {visible.length === 0 && stashed.length === 0 && (
+          <div className="editor-empty">No decorations owned yet. Buy some from the market!</div>
+        )}
+        {visible.map(dec => <DecoRow key={dec.id} dec={dec} isStashed={false} />)}
+        {stashed.length > 0 && (
+          <>
+            <div className="editor-section-label">Stashed</div>
+            {stashed.map(dec => <DecoRow key={dec.id} dec={dec} isStashed={true} />)}
+          </>
+        )}
       </div>
     </div>
   );
@@ -210,8 +276,8 @@ export default function Aquarium() {
   const [catches, setCatches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [decorations, setDecorations] = useState([]);
+  const [editorMode, setEditorMode] = useState(false);
 
-  // Load decorations placed in the side panel + stay in sync with live changes.
   useEffect(() => {
     chrome.storage.local.get(["panelDecorations"], ({ panelDecorations }) => {
       if (Array.isArray(panelDecorations)) setDecorations(panelDecorations);
@@ -233,16 +299,46 @@ export default function Aquarium() {
     });
   }, []);
 
+  const toggleVisibility = useCallback((id) => {
+    setDecorations(prev => {
+      const next = prev.map(d => d.id === id ? { ...d, visible: d.visible === false ? true : false } : d);
+      chrome.storage.local.set({ panelDecorations: next });
+      return next;
+    });
+  }, []);
+
+  const moveToFront = useCallback((id) => {
+    setDecorations(prev => {
+      const idx = prev.findIndex(d => d.id === id);
+      if (idx < 0) return prev;
+      const next = [...prev];
+      const [item] = next.splice(idx, 1);
+      next.push(item);
+      chrome.storage.local.set({ panelDecorations: next });
+      return next;
+    });
+  }, []);
+
+  const moveToBack = useCallback((id) => {
+    setDecorations(prev => {
+      const idx = prev.findIndex(d => d.id === id);
+      if (idx < 0) return prev;
+      const next = [...prev];
+      const [item] = next.splice(idx, 1);
+      next.unshift(item);
+      chrome.storage.local.set({ panelDecorations: next });
+      return next;
+    });
+  }, []);
+
   useEffect(() => {
     chrome.storage.local.get(["panelCatchIds", "portUserEmail"], async ({ panelCatchIds, portUserEmail }) => {
-      // Prefer the live side-panel catches synced to storage
       if (panelCatchIds?.length) {
         const idSet = new Set(panelCatchIds);
         setCatches(FISH.filter(f => idSet.has(f.id)));
         setLoading(false);
         return;
       }
-      // Fall back to Port API
       if (!portUserEmail) { setLoading(false); return; }
       try {
         const res = await chrome.runtime.sendMessage({ type: "GET_CATCHES", userEmail: portUserEmail });
@@ -256,9 +352,10 @@ export default function Aquarium() {
   }, []);
 
   const displayFish = catches.length > 0 ? catches : FISH.slice(0, 12);
+  const visibleDecorations = decorations.filter(d => d.visible !== false);
 
   return (
-    <div className="aq-root">
+    <div className={`aq-root${editorMode ? ' editor-active' : ''}`}>
       <div className="aq-hud">
         <span className="aq-hud-title">🐠 Aquarium</span>
         {!loading && (
@@ -266,7 +363,25 @@ export default function Aquarium() {
         )}
         {loading && <span className="aq-hud-count">Loading...</span>}
       </div>
-      <Tank fish={displayFish} decorations={decorations} onMoveDecoration={moveDecoration} />
+
+      <button
+        className={`editor-toggle-btn${editorMode ? ' active' : ''}`}
+        onClick={() => setEditorMode(m => !m)}
+        title={editorMode ? 'Exit editor' : 'Aquarium Editor Mode'}
+      >
+        {editorMode ? '✕ Close Editor' : '🎨 Editor'}
+      </button>
+
+      {editorMode && (
+        <EditorPanel
+          decorations={decorations}
+          onToggleVisibility={toggleVisibility}
+          onMoveToFront={moveToFront}
+          onMoveToBack={moveToBack}
+        />
+      )}
+
+      <Tank fish={displayFish} decorations={visibleDecorations} onMoveDecoration={moveDecoration} />
     </div>
   );
 }

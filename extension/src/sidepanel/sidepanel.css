@@ -718,6 +718,7 @@ html, body, #root {
   will-change: transform, left, top;
   transition: filter 0.3s ease;
   line-height: 1;
+  z-index: 2;
 }
 
 .market-fish-icon {
@@ -784,10 +785,24 @@ html, body, #root {
   filter: drop-shadow(0 2px 6px rgba(0,0,0,0.4));
   transition: filter 0.15s;
 }
+.tank-decoration--back  { z-index: 1; }
+.tank-decoration--front { z-index: 3; }
 .tank-decoration:hover {
   filter: drop-shadow(0 4px 10px rgba(255,255,255,0.5));
 }
 .tank-decoration:active { cursor: grabbing; }
+.tank-decoration--readonly { cursor: default; pointer-events: none; }
+.tank-readonly-hint {
+  position: absolute;
+  bottom: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10px;
+  color: rgba(255,255,255,0.45);
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 10;
+}
 .tank-decoration-img {
   display: block;
   image-rendering: pixelated;
