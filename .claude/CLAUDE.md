@@ -118,6 +118,34 @@ For example, if a branch is created and merged unusually quickly, that can sligh
 
 Service-based fish pools are important and should stay extensible. Future agents should expect the user to expand on how services map to fish types, habitats, themes, or rarity bands.
 
+### Port Monorepo Context
+
+Most rarity and fish-pool logic should be designed around code changes in the `port-labs/Port` repository. A local checkout may exist at `/Users/arbelteitelbaum/PortFolder/Port`, but this project should only read or reference that repo for context unless the user explicitly asks otherwise.
+
+`port-labs/Port` is a monorepo. Its services live under `/Users/arbelteitelbaum/PortFolder/Port/apps`, with examples such as `port-api`, `frontend`, `workflow-service`, `action-service`, `integ-service`, `github-app`, `bitbucket-app`, `lakehouse-reader`, `lakehouse-writer`, `notification-service`, and other service folders.
+
+Fish pools should map to service groups, not only to individual files. The intended collection pressure is: to complete the fish-dex, users should be encouraged to work across different areas of the system. This supports the SDLC-enhancement goal because broader service ownership and contribution unlock broader fish variety.
+
+Prefer 3-4 broad fish pools for the MVP. Example grouping direction:
+
+- **Product Surface Pool**: `frontend`, `page-service`, user-facing UI or experience changes.
+- **Core Platform Pool**: `port-api`, `asset-service`, `search-service`, `calculation-properties-service`, core catalog or API changes.
+- **Workflow and Automation Pool**: `workflow-service`, `workflow-scheduler`, `action-service`, `scheduler-service`, automation and execution changes.
+- **Integrations and Data Pool**: `integ-service`, `github-app`, `bitbucket-app`, `slack-app`, `lakehouse-*`, external integrations and data flow changes.
+
+These pools are starting guidance, not a final taxonomy. Keep the mapping configurable so services can move between pools or new pools can be added later.
+
+### Rarity Factors
+
+Rarity bonuses should be modifiers on top of the selected pool's normal odds:
+
+- **PR lifecycle TTL**: faster code-change-to-merge time can slightly improve rarity chances. This should reward smooth delivery, but it must not encourage unsafe rushing.
+- **File freshness**: changes to files that have not been modified recently should improve rarity chances. Older untouched code represents less common territory and should feel more valuable to explore.
+- **Service pool coverage**: working in a service pool where the user has fewer collected fish should improve odds for new discoveries from that pool.
+- **Change value**: merged, reviewed, or otherwise completed SDLC outcomes should matter more than raw commit count.
+
+Avoid making any single factor decisive. Fast PRs, old files, and rare services should nudge the roll; they should not guarantee rare fish.
+
 ## Vocabulary
 
 - **Fishing Tokens / Baits**: The spendable reward currency users earn from Port.io activity.
