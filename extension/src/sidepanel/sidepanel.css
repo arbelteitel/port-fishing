@@ -8,166 +8,282 @@ html, body, #root {
 /* ── Fishing scene overlay ───────────────────────────────────────────────────── */
 .fishing-scene {
   position: fixed; inset: 0; z-index: 80;
-  background: linear-gradient(180deg, #020c1b 0%, #041628 45%, #062240 70%, #083060 100%);
-  display: flex; flex-direction: column;
-  align-items: center;
+  background: linear-gradient(180deg, #010a18 0%, #031220 50%, #041830 100%);
   overflow: hidden;
   animation: scene-in 0.3s ease;
 }
 @keyframes scene-in { from { opacity: 0; } to { opacity: 1; } }
 
-/* Sky */
-.scene-sky { position: absolute; top: 0; left: 0; right: 0; height: 45%; pointer-events: none; }
-.scene-moon { position: absolute; top: 12px; right: 24px; font-size: 28px; filter: drop-shadow(0 0 12px rgba(255,240,180,0.8)); }
+/* Stars & moon */
+.scene-sky { position: absolute; inset: 0; pointer-events: none; }
+.scene-moon {
+  position: absolute; top: 18px; right: 28px;
+  font-size: 32px;
+  filter: drop-shadow(0 0 18px rgba(255,240,180,0.9));
+  animation: moon-glow 4s ease-in-out infinite;
+}
+@keyframes moon-glow { 0%,100% { filter: drop-shadow(0 0 14px rgba(255,240,180,0.7)); } 50% { filter: drop-shadow(0 0 28px rgba(255,240,180,1)); } }
 .scene-star {
-  position: absolute; font-size: 10px; color: rgba(255,255,255,0.7);
+  position: absolute; font-size: 9px; color: rgba(255,255,255,0.75);
   animation: twinkle 2s ease-in-out infinite;
 }
-@keyframes twinkle { 0%,100% { opacity: 0.4; } 50% { opacity: 1; } }
+@keyframes twinkle { 0%,100% { opacity: 0.25; } 50% { opacity: 1; } }
 
-/* Rod */
-.scene-rod-wrap {
-  position: absolute; top: 18%; right: 18%;
-  display: flex; flex-direction: column; align-items: flex-end;
-  transform-origin: bottom right;
-}
-.scene-rod-wrap.cast { animation: rod-cast 0.5s cubic-bezier(0.25,0.46,0.45,0.94) forwards; }
-.scene-rod-wrap.wait,
-.scene-rod-wrap.nibble,
-.scene-rod-wrap.strike,
-.scene-rod-wrap.splash { transform: rotate(-30deg); }
-
-@keyframes rod-cast {
-  0%   { transform: rotate(40deg); }
-  60%  { transform: rotate(-40deg); }
-  100% { transform: rotate(-30deg); }
-}
-.scene-rod-emoji { font-size: 42px; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.5)); }
-
-/* Line from rod to water */
-.scene-line {
-  position: absolute;
-  top: 36px; right: 10px;
-  width: 2px;
-  background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.3));
-  transform-origin: top center;
-  animation: line-drop 0.4s ease-out forwards;
-}
-.scene-line.wait   { height: 140px; transform: rotate(12deg); }
-.scene-line.nibble { height: 140px; transform: rotate(12deg); }
-.scene-line.strike { height: 120px; transform: rotate(18deg); animation: line-taut 0.15s ease-in-out; }
-.scene-line.splash { height: 80px;  transform: rotate(5deg); }
-
-@keyframes line-drop {
-  0%   { height: 0; }
-  100% { height: 140px; }
-}
-@keyframes line-taut {
-  0%,100% { transform: rotate(18deg) scaleX(1); }
-  50%      { transform: rotate(20deg) scaleX(1.5); }
-}
-
-/* Water surface */
+/* Water */
 .scene-water {
   position: absolute;
-  bottom: 34%; left: 0; right: 0; height: 50px;
+  left: 0; right: 0; top: 58%; bottom: 0;
+  background: linear-gradient(180deg, #0b3d6a 0%, #041a35 100%);
+  overflow: hidden;
 }
-.wave {
-  position: absolute; left: -10%; right: -10%; height: 12px;
-  border-radius: 50%;
-  background: rgba(56,189,248,0.25);
-  animation: wave-roll 3s ease-in-out infinite;
+.scene-water::before {
+  content: '';
+  position: absolute; top: -2px; left: 0; right: 0; height: 8px;
+  background: linear-gradient(180deg, rgba(56,189,248,0.55) 0%, transparent 100%);
+  animation: surface-glow 3.5s ease-in-out infinite;
 }
-.w1 { top: 0;  animation-delay: 0s;    animation-duration: 3.2s; }
-.w2 { top: 8px; animation-delay: -1s;  animation-duration: 2.8s; background: rgba(56,189,248,0.15); }
-.w3 { top: 16px; animation-delay: -2s; animation-duration: 3.6s; background: rgba(14,165,233,0.2); }
-@keyframes wave-roll {
-  0%,100% { transform: translateX(0) scaleY(1); }
-  50%      { transform: translateX(3%) scaleY(1.3); }
-}
-.scene-water.choppy .wave { animation-duration: 0.4s !important; }
-
-/* Below-water area */
+@keyframes surface-glow { 0%,100% { opacity: 0.7; } 50% { opacity: 1; } }
 .scene-water::after {
-  content: "";
-  position: absolute; top: 20px; left: 0; right: 0; bottom: -200px;
-  background: linear-gradient(180deg, rgba(14,165,233,0.18) 0%, rgba(3,105,161,0.35) 100%);
+  content: '';
+  position: absolute;
+  top: 12px; left: 10%; right: 10%; height: 90px;
+  background: radial-gradient(ellipse, rgba(56,189,248,0.08) 0%, transparent 70%);
+  animation: deep-glow 4s ease-in-out infinite;
 }
+@keyframes deep-glow { 0%,100% { opacity: 0.6; transform: scaleX(1); } 50% { opacity: 1; transform: scaleX(1.06); } }
+.scene-wave {
+  position: absolute; left: 0; right: 0; height: 2px;
+  background: rgba(147,220,255,0.22);
+  animation: wave-drift 7s ease-in-out infinite;
+}
+.scene-wave.w1 { top: 22px; animation-duration: 5s; }
+.scene-wave.w2 { top: 38px; animation-delay: -2.2s; animation-duration: 8s; opacity: 0.5; }
+@keyframes wave-drift { 0%,100% { transform: scaleX(1) translateX(0); } 50% { transform: scaleX(0.96) translateX(1.5%); } }
+.scene-water.choppy::before { animation-duration: 0.6s; }
+.scene-water.choppy .scene-wave { animation-duration: 1s !important; }
+
+/* Moon reflection */
+.scene-moon-reflect {
+  position: absolute;
+  left: calc(86% - 28px); top: 58%;
+  width: 16px;
+  background: rgba(255,245,200,0.07);
+  animation: reflect-ripple 2.5s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes reflect-ripple {
+  0%,100% { height: 40px; opacity: 0.6; }
+  50%      { height: 55px; opacity: 0.9; }
+}
+
+/* Rod - positioned top-right, rotate on cast */
+.scene-rod {
+  position: absolute;
+  top: 13%; right: 13%;
+  font-size: 48px;
+  filter: drop-shadow(0 2px 12px rgba(0,0,0,0.7));
+  transform-origin: bottom right;
+  transform: rotate(-25deg);
+}
+.scene-rod.cast {
+  animation: rod-cast 0.55s cubic-bezier(0.2, 0.6, 0.35, 1) forwards;
+}
+@keyframes rod-cast {
+  0%   { transform: rotate(55deg); }
+  55%  { transform: rotate(-38deg); }
+  78%  { transform: rotate(-20deg); }
+  100% { transform: rotate(-25deg); }
+}
+.scene-rod.strike {
+  animation: rod-shake 0.28s ease-in-out;
+}
+@keyframes rod-shake {
+  0%,100% { transform: rotate(-25deg); }
+  30%     { transform: rotate(-16deg) translateY(-4px); }
+  65%     { transform: rotate(-33deg) translateY(3px); }
+}
+
+/* Fishing line - full-scene SVG overlay */
+.scene-svg {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  overflow: visible;
+}
+.svg-fishing-line {
+  stroke-linecap: round;
+  fill: none;
+}
+.svg-fishing-line.wait   {
+  stroke: rgba(255,255,255,0.8); stroke-width: 1.5;
+  filter: drop-shadow(0 0 2px rgba(180,230,255,0.5));
+}
+.svg-fishing-line.nibble {
+  stroke: rgba(255,225,80,0.95); stroke-width: 1.8;
+  filter: drop-shadow(0 0 4px rgba(255,220,60,0.8));
+  animation: line-twitch 0.22s ease-in-out infinite;
+}
+.svg-fishing-line.strike {
+  stroke: rgba(255,255,255,1); stroke-width: 2.5;
+  filter: drop-shadow(0 0 6px rgba(255,255,180,1));
+  animation: line-snap 0.22s ease;
+}
+.svg-fishing-line.splash {
+  stroke: rgba(255,255,255,0.35); stroke-width: 1;
+}
+@keyframes line-twitch { 0%,100% { stroke-width: 1.8; } 50% { stroke-width: 2.8; } }
+@keyframes line-snap   { 0%,100% { stroke-width: 2.5; } 50% { stroke-width: 5; stroke: rgba(255,255,160,1); } }
 
 /* Bobber */
 .scene-bobber {
   position: absolute;
-  bottom: 30%; right: 28%;
+  left: 50%; top: 58%;
+  transform: translateX(-50%) translateY(-68%);
   display: flex; flex-direction: column; align-items: center;
-  gap: 0;
+  pointer-events: none;
 }
 .bobber-stick {
-  width: 3px; height: 18px;
-  background: linear-gradient(180deg, #ef4444, #dc2626);
+  width: 3px; height: 16px;
+  background: linear-gradient(180deg, #d97706, #b45309);
   border-radius: 2px;
+  box-shadow: 0 0 4px rgba(180,120,40,0.4);
 }
 .bobber-ball {
   width: 14px; height: 14px; border-radius: 50%;
-  background: linear-gradient(135deg, #ef4444 50%, #fff 50%);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  background: linear-gradient(145deg, #ef4444 50%, #fff 50%);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.5), 0 0 10px rgba(239,68,68,0.5);
 }
-.scene-bobber.wait   { animation: bob-gentle 1.2s ease-in-out infinite; }
-.scene-bobber.nibble { animation: bob-nibble 0.2s ease-in-out infinite; }
+.scene-bobber.wait   { animation: bobber-idle   1.7s ease-in-out infinite; }
+.scene-bobber.nibble { animation: bobber-nibble 0.22s ease-in-out infinite; }
+@keyframes bobber-idle   { 0%,100% { transform: translateX(-50%) translateY(-68%); } 50% { transform: translateX(-50%) translateY(-55%); } }
+@keyframes bobber-nibble { 0%,100% { transform: translateX(-50%) translateY(-68%); } 50% { transform: translateX(-50%) translateY(-18%); } }
 
-@keyframes bob-gentle {
-  0%,100% { transform: translateY(0); }
-  50%      { transform: translateY(5px); }
-}
-@keyframes bob-nibble {
-  0%,100% { transform: translateY(0); }
-  50%      { transform: translateY(14px); }
-}
-
-/* Splash */
+/* Splash - anchored at water surface center */
 .scene-splash {
   position: absolute;
-  bottom: 30%; right: 22%;
-  display: flex; align-items: center; justify-content: center;
+  left: 50%; top: 58%;
+  transform: translateX(-50%);
+  pointer-events: none;
 }
-.splash-drops { position: absolute; inset: 0; }
+.splash-ring {
+  position: absolute; left: 0; top: 0;
+  border-radius: 50%;
+  border: 2px solid rgba(100,210,255,0.85);
+  transform: translate(-50%, -50%);
+  animation: ring-expand 0.95s ease-out forwards;
+}
+.splash-ring.r1 { width: 14px; height: 6px; }
+.splash-ring.r2 { width: 14px; height: 6px; animation-delay: 0.14s; }
+.splash-ring.r3 { width: 14px; height: 6px; animation-delay: 0.28s; }
+@keyframes ring-expand {
+  0%   { width: 14px;  height: 6px;  opacity: 1; }
+  100% { width: 140px; height: 55px; opacity: 0; }
+}
+.splash-drops { position: absolute; top: 0; left: 0; }
 .splash-drop {
-  position: absolute;
-  font-size: 16px;
-  top: 0; left: 50%;
-  animation: drop-fly 0.7s ease-out forwards;
-  transform-origin: center bottom;
+  position: absolute; top: 0; left: 0;
+  font-size: 10px;
+  animation: drop-fly 0.8s ease-out forwards;
 }
 @keyframes drop-fly {
-  0%   { transform: rotate(var(--angle)) translateY(0)   scale(1);   opacity: 1; }
-  100% { transform: rotate(var(--angle)) translateY(-50px) scale(0.5); opacity: 0; }
+  0%   { transform: rotate(var(--angle, 0deg)) translateY(0)     scale(1);   opacity: 1; }
+  100% { transform: rotate(var(--angle, 0deg)) translateY(-65px)  scale(0.3); opacity: 0; }
 }
 .splash-fish {
-  font-size: 48px;
-  animation: fish-leap 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-  filter: drop-shadow(0 0 20px rgba(255,255,255,0.6));
+  position: absolute;
+  left: 0; top: 0;
+  transform: translate(-50%, -50%);
+  font-size: 46px;
+  filter: drop-shadow(0 0 24px rgba(255,255,255,0.9));
+  animation: fish-leap-up 1.1s cubic-bezier(0.12, 0.85, 0.22, 1) forwards;
 }
-@keyframes fish-leap {
-  0%   { transform: translateY(30px) rotate(0deg)   scale(0.5); opacity: 0; }
-  40%  { transform: translateY(-60px) rotate(-20deg) scale(1.2); opacity: 1; }
-  100% { transform: translateY(-40px) rotate(-15deg) scale(1);   opacity: 1; }
+@keyframes fish-leap-up {
+  0%   { transform: translate(-50%,  20px) scale(0.55) rotate(0deg);   opacity: 0; }
+  18%  { opacity: 1; }
+  55%  { transform: translate(-50%, -150px) scale(1.18) rotate(-22deg); opacity: 1; }
+  100% { transform: translate(-50%, -120px) scale(1)   rotate(-16deg); opacity: 0.85; }
 }
 
 /* Status label */
 .scene-label {
   position: absolute;
-  bottom: 16%; left: 50%; transform: translateX(-50%);
-  font-size: 15px; font-weight: 700; color: rgba(255,255,255,0.7);
-  letter-spacing: 0.3px; white-space: nowrap;
-  animation: label-pulse 1s ease-in-out infinite;
+  bottom: 13%; left: 50%; transform: translateX(-50%);
+  font-size: 15px; font-weight: 700;
+  color: rgba(200,235,255,0.9);
+  white-space: nowrap;
+  text-shadow: 0 0 14px rgba(100,180,255,0.9);
+  animation: label-appear 0.3s ease;
 }
 .scene-label.label-strike {
-  font-size: 22px; font-weight: 900;
-  color: #fbbf24;
-  animation: strike-flash 0.15s ease-in-out 3;
-  text-shadow: 0 0 20px rgba(251,191,36,0.8);
+  color: #ffd700; font-size: 22px; font-weight: 900;
+  text-shadow: 0 0 28px rgba(255,215,0,1);
+  animation: strike-flash 0.15s ease-in-out 4;
 }
-@keyframes label-pulse  { 0%,100% { opacity: 0.7; } 50% { opacity: 1; } }
-@keyframes strike-flash { 0%,100% { opacity: 1; transform: translateX(-50%) scale(1); } 50% { opacity: 0.5; transform: translateX(-50%) scale(1.1); } }
+@keyframes label-appear { from { opacity: 0; transform: translateX(-50%) translateY(6px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+@keyframes strike-flash { 0%,100% { opacity: 1; transform: translateX(-50%) scale(1); } 50% { opacity: 0.15; transform: translateX(-50%) scale(1.1); } }
+
+/* ── Bait inventory bottom sheet ─────────────────────────────────────────────── */
+.bait-sheet-backdrop {
+  position: fixed; inset: 0; z-index: 60;
+  background: rgba(0,0,0,0.35);
+  animation: fade-in 0.2s ease;
+}
+.bait-sheet {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 61;
+  background: #fff;
+  border-radius: 20px 20px 0 0;
+  padding: 0 0 28px;
+  overflow-y: auto;
+  animation: sheet-slide-up 0.3s cubic-bezier(0.34, 1.18, 0.64, 1);
+  box-shadow: 0 -6px 40px rgba(0,0,0,0.18);
+}
+@keyframes sheet-slide-up { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+.bait-sheet-handle {
+  display: flex; justify-content: center; padding: 12px 0 6px;
+}
+.bait-sheet-handle::after {
+  content: ''; width: 36px; height: 4px;
+  background: #e2e8f0; border-radius: 2px;
+}
+.bait-sheet-title {
+  padding: 4px 20px 12px;
+  font-size: 13px; font-weight: 800; color: #0369a1;
+  text-transform: uppercase; letter-spacing: 0.6px;
+}
+.bait-option {
+  display: flex; align-items: center; gap: 12px;
+  padding: 13px 20px;
+  border-top: 1px solid #f1f5f9;
+  cursor: pointer;
+  transition: background 0.12s ease;
+  position: relative;
+}
+.bait-option:hover:not(.empty) { background: #f8fafc; }
+.bait-option.selected { background: #eff6ff; }
+.bait-option.empty    { opacity: 0.38; cursor: default; }
+.bait-option-emoji { font-size: 30px; flex-shrink: 0; }
+.bait-option-info  { flex: 1; min-width: 0; }
+.bait-option-name  { font-size: 14px; font-weight: 700; color: #1e293b; }
+.bait-option-desc  { font-size: 11px; color: #64748b; margin-top: 1px; }
+.bait-odds-row     { display: flex; gap: 3px; margin-top: 5px; }
+.odds-chip {
+  font-size: 10px; font-weight: 700;
+  padding: 2px 5px; border-radius: 4px;
+}
+.odds-chip.common    { background: #f1f5f9; color: #64748b; }
+.odds-chip.uncommon  { background: #dcfce7; color: #15803d; }
+.odds-chip.rare      { background: #dbeafe; color: #1d4ed8; }
+.odds-chip.legendary { background: #fef3c7; color: #b45309; }
+.bait-option-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
+.bait-option-count {
+  font-size: 12px; font-weight: 700; color: #64748b;
+  background: #f1f5f9; border-radius: 10px; padding: 2px 8px;
+}
+.bait-option.selected .bait-option-count { background: #dbeafe; color: #1d4ed8; }
+.bait-option-check { font-size: 16px; color: #0ea5e9; }
+.bait-chip { cursor: pointer; transition: transform 0.1s ease, box-shadow 0.1s ease; }
+.bait-chip:hover { transform: scale(1.05); }
 
 /* ── Panel shell ─────────────────────────────────────────────────────────────── */
 .panel {
@@ -203,6 +319,65 @@ html, body, #root {
 }
 .bait-num   { font-size: 20px; font-weight: 900; color: #fff; line-height: 1; }
 .bait-label { font-size: 10px; color: rgba(255,255,255,0.8); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+
+/* ── Bait inventory strip ────────────────────────────────────────────────────── */
+.bait-inventory {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 18px;
+  background: rgba(255,255,255,0.25);
+  border-bottom: 1px solid rgba(255,255,255,0.45);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.inv-pill {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  border: 1px solid;
+  cursor: default;
+  transition: transform 0.12s, box-shadow 0.12s;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+.inv-pill:hover { transform: translateY(-1px); box-shadow: 0 3px 8px rgba(0,0,0,0.1); }
+
+.inv-pill.common    { background: rgba(148,163,184,0.2); border-color: rgba(148,163,184,0.4); color: #475569; }
+.inv-pill.uncommon  { background: rgba(34,197,94,0.14);  border-color: rgba(34,197,94,0.4);   color: #15803d; }
+.inv-pill.rare      { background: rgba(14,165,233,0.14); border-color: rgba(14,165,233,0.4);  color: #0369a1; }
+.inv-pill.legendary { background: rgba(245,158,11,0.14); border-color: rgba(245,158,11,0.4);  color: #b45309; }
+.inv-pill.inv-empty { opacity: 0.35; }
+
+.inv-emoji { font-size: 14px; }
+.inv-count { font-size: 13px; }
+
+.inv-total {
+  margin-left: auto;
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+}
+
+.inv-total-num {
+  font-size: 18px;
+  font-weight: 900;
+  color: #0369a1;
+  line-height: 1;
+}
+
+.inv-total-label {
+  font-size: 9px;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 700;
+}
 
 /* ── Fish button section ─────────────────────────────────────────────────────── */
 .btn-section {

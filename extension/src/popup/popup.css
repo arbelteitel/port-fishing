@@ -1,108 +1,445 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 html, body, #root {
-  width: 300px;
+  width: 340px;
 }
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background: #0d1117;
-  color: #e6edf3;
+  background: linear-gradient(160deg, #e0f2fe 0%, #bae6fd 40%, #7dd3fc 100%);
+  color: #0f172a;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100%;
 }
 
-/* ── Shared layout ─────────────────────────────────────────────────────────── */
 .popup {
-  width: 300px;
-  padding: 14px;
+  width: 340px;
+  display: flex;
+  flex-direction: column;
+  min-height: 460px;
+}
+
+/* ── Header ─────────────────────────────────────────────────────────── */
+.popup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  background: rgba(255,255,255,0.55);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255,255,255,0.7);
+}
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.header-logo {
+  font-size: 26px;
+  filter: drop-shadow(0 2px 6px rgba(3,105,161,0.3));
+}
+
+.header-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: #0369a1;
+  letter-spacing: -0.3px;
+}
+
+.header-sub {
+  font-size: 10px;
+  color: #7dd3fc;
+  font-weight: 600;
+  margin-top: 1px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.user-pill {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(255,255,255,0.65);
+  border: 1px solid rgba(255,255,255,0.85);
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-size: 11px;
+  color: #0369a1;
+  font-weight: 700;
+}
+
+/* ── Body ───────────────────────────────────────────────────────────── */
+.popup-body {
+  flex: 1;
+  padding: 16px 18px;
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-header {
+/* ── Bait card ──────────────────────────────────────────────────────── */
+.bait-card {
+  background: rgba(255,255,255,0.55);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.85);
+  border-radius: 14px;
+  padding: 16px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(14,165,233,0.1);
+}
+
+.bait-card::after {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(14,165,233,0.5), transparent);
+}
+
+.bait-main {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.bait-count-big {
+  font-size: 44px;
+  font-weight: 900;
+  color: #0369a1;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 2px 10px rgba(3,105,161,0.2);
+}
+
+.bait-meta {
+  flex: 1;
+}
+
+.bait-meta-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.bait-meta-hint {
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.bait-worm-icon {
+  font-size: 24px;
+  opacity: 0.6;
+}
+
+.bait-types-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.bait-pill {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  border: 1px solid;
+}
+
+.bait-pill.common    { background: rgba(148,163,184,0.15); border-color: rgba(148,163,184,0.35); color: #475569; }
+.bait-pill.uncommon  { background: rgba(34,197,94,0.12);   border-color: rgba(34,197,94,0.35);   color: #15803d; }
+.bait-pill.rare      { background: rgba(14,165,233,0.12);  border-color: rgba(14,165,233,0.35);  color: #0369a1; }
+.bait-pill.legendary { background: rgba(245,158,11,0.12);  border-color: rgba(245,158,11,0.35);  color: #b45309; }
+.bait-pill.empty     { opacity: 0.35; }
+
+/* ── Go Fish button ─────────────────────────────────────────────────── */
+.btn-go-fish {
+  width: 100%;
+  padding: 15px;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(145deg, #f97316, #ef4444, #ec4899);
+  color: #fff;
+  font-size: 17px;
+  font-weight: 900;
+  cursor: pointer;
+  letter-spacing: 0.3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 6px 28px rgba(239,68,68,0.4), inset 0 1px 0 rgba(255,255,255,0.25);
+  transition: transform 0.15s, box-shadow 0.15s;
+  animation: btn-pulse 2.5s ease-in-out infinite;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-go-fish::before {
+  content: "";
+  position: absolute; top: 0; left: -60%; width: 60%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  animation: shimmer 2.5s ease-in-out infinite;
+}
+
+.btn-go-fish:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 36px rgba(239,68,68,0.5), inset 0 1px 0 rgba(255,255,255,0.25);
+}
+
+.btn-go-fish:active:not(:disabled) { transform: scale(0.98); }
+
+.btn-go-fish:disabled {
+  background: linear-gradient(145deg, #cbd5e1, #94a3b8);
+  box-shadow: none;
+  animation: none;
+  cursor: not-allowed;
+}
+
+.btn-go-fish:disabled::before { display: none; }
+
+@keyframes btn-pulse {
+  0%, 100% { box-shadow: 0 6px 28px rgba(239,68,68,0.4), inset 0 1px 0 rgba(255,255,255,0.25); }
+  50%       { box-shadow: 0 6px 40px rgba(239,68,68,0.6), inset 0 1px 0 rgba(255,255,255,0.25); }
+}
+
+@keyframes shimmer {
+  0%        { left: -60%; }
+  60%, 100% { left: 120%; }
+}
+
+.btn-icon { font-size: 20px; }
+
+/* ── Secondary actions ──────────────────────────────────────────────── */
+.secondary-row {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-secondary {
+  flex: 1;
+  padding: 10px 12px;
+  background: rgba(255,255,255,0.5);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.85);
+  border-radius: 10px;
+  color: #0369a1;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+  text-align: center;
+}
+
+.btn-secondary:hover:not(:disabled) { background: rgba(255,255,255,0.8); }
+.btn-secondary:active:not(:disabled) { transform: scale(0.97); }
+.btn-secondary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.popup-hint {
+  font-size: 11px;
+  color: rgba(3,105,161,0.45);
+  text-align: center;
+  line-height: 1.4;
+}
+
+/* ── Result screen ──────────────────────────────────────────────────── */
+.result-screen {
+  min-height: 460px;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(160deg, #e0f2fe 0%, #bae6fd 40%, #7dd3fc 100%);
+}
+
+.result-header {
+  display: flex;
+  align-items: center;
+  padding: 14px 18px;
+  background: rgba(255,255,255,0.55);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255,255,255,0.7);
+}
+
+.result-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 18px;
+  gap: 12px;
+}
+
+.result-card {
+  width: 100%;
+  background: rgba(255,255,255,0.65);
+  backdrop-filter: blur(16px);
+  border: 2px solid var(--rarity-color, #0369a1);
+  border-radius: 18px;
+  padding: 28px 20px 24px;
+  text-align: center;
+  box-shadow: 0 8px 40px var(--rarity-glow, rgba(3,105,161,0.2));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+  animation: card-appear 0.4s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+@keyframes card-appear {
+  0%   { transform: scale(0.8) translateY(20px); opacity: 0; }
+  100% { transform: scale(1)   translateY(0);    opacity: 1; }
+}
+
+.result-fish-emoji {
+  font-size: 76px;
+  line-height: 1;
+  filter: drop-shadow(0 0 20px var(--rarity-glow, rgba(3,105,161,0.4)));
+  animation: fish-pop 0.5s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+@keyframes fish-pop {
+  0%   { transform: scale(0) rotate(-20deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+
+.result-new-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: linear-gradient(135deg, #f59e0b, #ef4444);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 4px 14px;
+  border-radius: 20px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.result-stars {
+  font-size: 20px;
+  letter-spacing: 4px;
+  color: var(--rarity-color, #0369a1);
+}
+
+.result-rarity-tag {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--rarity-color, #0369a1);
+  padding: 3px 10px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.6);
+  border: 1px solid var(--rarity-color, #0369a1);
+}
+
+.result-fish-name {
+  font-size: 24px;
+  font-weight: 900;
+  color: #0f172a;
+}
+
+.result-fish-desc {
+  font-size: 12px;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+.result-footer {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ── Aquarium screen ────────────────────────────────────────────────── */
+.aquarium-screen {
+  min-height: 460px;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(160deg, #e0f2fe 0%, #bae6fd 40%, #7dd3fc 100%);
+}
+
+.aquarium-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  padding: 13px 18px;
+  background: rgba(255,255,255,0.55);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255,255,255,0.7);
 }
 
-header h1 { font-size: 15px; font-weight: 700; color: #58a6ff; }
-.username  { font-size: 12px; color: #8b949e; }
-.fish-count { font-size: 12px; color: #8b949e; }
-
-.back-btn {
-  background: none; border: none; cursor: pointer;
-  font-size: 18px; color: #8b949e; padding: 2px 6px 2px 0;
+.btn-back {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 20px;
+  color: #64748b;
+  padding: 0 8px 0 0;
+  transition: color 0.15s;
+  line-height: 1;
 }
-.back-btn:hover { color: #e6edf3; }
 
-/* ── Bait display ──────────────────────────────────────────────────────────── */
-.bait-display {
-  display: flex; align-items: center; gap: 10px;
-  background: #161b22; border-radius: 10px;
-  padding: 12px 14px; border: 1px solid #30363d;
+.btn-back:hover { color: #0369a1; }
+
+.aquarium-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: #0369a1;
 }
-.bait-count  { font-size: 34px; font-weight: 800; color: #58a6ff; line-height: 1; }
-.bait-label  { font-size: 13px; color: #8b949e; }
 
-/* ── Buttons ───────────────────────────────────────────────────────────────── */
-.btn {
-  width: 100%; padding: 10px 14px; border: none; border-radius: 8px;
-  font-size: 14px; font-weight: 600; cursor: pointer;
-  transition: opacity 0.15s, transform 0.1s;
+.aquarium-count {
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 600;
 }
-.btn:active { transform: scale(0.97); }
-.btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
-.btn.primary { background: #1f6feb; color: #fff; }
-.btn.primary:hover:not(:disabled) { background: #388bfd; }
-.btn.secondary { background: #21262d; color: #c9d1d9; border: 1px solid #30363d; }
-.btn.secondary:hover:not(:disabled) { background: #30363d; }
-.cast-btn { font-size: 15px; padding: 12px; }
-.secondary-actions { display: flex; flex-direction: column; gap: 8px; }
-.hint { font-size: 11px; color: #484f58; text-align: center; }
 
-/* ── Result screen ─────────────────────────────────────────────────────────── */
-.result-screen { align-items: center; }
-.fish-reveal {
-  width: 100%; text-align: center; padding: 18px 14px;
-  border: 2px solid; border-radius: 12px; background: #161b22;
-  display: flex; flex-direction: column; align-items: center; gap: 5px;
-  position: relative;
-}
-.fish-emoji-big { font-size: 60px; line-height: 1.1; }
-.fish-reveal h2 { font-size: 11px; letter-spacing: 2px; margin-top: 2px; }
-.fish-reveal h3 { font-size: 17px; font-weight: 700; }
-.fish-desc      { font-size: 11px; color: #8b949e; }
-.new-badge {
-  position: absolute; top: 10px; right: 10px;
-  background: #FF9800; color: #000; font-size: 10px;
-  font-weight: 800; padding: 2px 6px; border-radius: 4px;
-  letter-spacing: 0.5px;
-}
-.result-actions { width: 100%; display: flex; flex-direction: column; gap: 8px; }
-
-/* ── Aquarium screen ───────────────────────────────────────────────────────── */
-.aquarium-screen { gap: 0; padding: 14px 14px 0; }
-
+/* ── Tank ───────────────────────────────────────────────────────────── */
 .tank {
+  height: 190px;
   position: relative;
-  width: 100%;
-  height: 180px;
-  margin-top: 10px;
-  background: linear-gradient(180deg, #0a1628 0%, #0d2240 60%, #0a1a30 100%);
-  border-radius: 10px 10px 0 0;
+  background: linear-gradient(180deg, #0369a1 0%, #0284c7 20%, #0ea5e9 50%, #38bdf8 80%, #7dd3fc 100%);
   overflow: hidden;
-  border: 1px solid #1a3a5c;
-  border-bottom: none;
+  flex-shrink: 0;
+  border-bottom: 2px solid rgba(255,255,255,0.3);
 }
 
-.tank-floor {
-  position: absolute; bottom: 0; left: 0; right: 0;
-  height: 12px;
-  background: linear-gradient(180deg, #1a3a1a, #0d2010);
-  border-top: 1px solid #2a5a2a;
+.tank-seabed {
+  position: absolute;
+  bottom: 0; left: 0; right: 0; height: 16px;
+  background: linear-gradient(180deg, #0c5a2e, #07331a);
+  border-top: 2px solid #16a34a;
 }
 
-/* Swimming fish */
+.seaweed {
+  position: absolute; bottom: 100%;
+  width: 8px; border-radius: 4px;
+  background: linear-gradient(180deg, #4ade80, #22c55e, #15803d);
+  transform-origin: bottom center;
+  animation: sway 3.5s ease-in-out infinite;
+}
+
+@keyframes sway {
+  0%, 100% { transform: rotate(-8deg); }
+  50%       { transform: rotate(8deg); }
+}
+
+.water-shimmer {
+  position: absolute; inset: 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse 70% 25% at 15% 15%, rgba(255,255,255,0.12) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 20% at 80% 25%, rgba(255,255,255,0.08) 0%, transparent 70%),
+    radial-gradient(ellipse 90% 30% at 50% 90%, rgba(3,105,161,0.25) 0%, transparent 70%);
+}
+
 @keyframes swim {
   0%   { left: -60px;  transform: scaleX(1); }
   49%  { left: 110%;   transform: scaleX(1); }
@@ -112,50 +449,62 @@ header h1 { font-size: 15px; font-weight: 700; color: #58a6ff; }
 }
 
 @keyframes bob {
-  0%, 100% { margin-top: 0px; }
-  50%       { margin-top: 6px; }
+  0%, 100% { margin-top: 0; }
+  50%       { margin-top: 5px; }
 }
 
 .swimming-fish {
   position: absolute;
   animation: swim linear infinite, bob ease-in-out infinite;
-  animation-duration: inherit;
   cursor: default;
   user-select: none;
-  will-change: left, transform;
-}
-
-/* Bubbles */
-@keyframes rise {
-  0%   { bottom: 12px; opacity: 0.6; transform: scale(0.5); }
-  100% { bottom: 95%;  opacity: 0;   transform: scale(1.2); }
 }
 
 .bubbles { position: absolute; inset: 0; pointer-events: none; }
 .bubble {
-  position: absolute; width: 5px; height: 5px;
-  border-radius: 50%; background: rgba(100, 180, 255, 0.3);
-  animation: rise 3.5s ease-in infinite;
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 25%, rgba(255,255,255,0.9), rgba(255,255,255,0.2));
+  opacity: 0;
+  animation: rise 4.5s ease-in infinite;
+}
+@keyframes rise {
+  0%   { bottom: 16px; opacity: 0; transform: scale(0.5); }
+  15%  { opacity: 0.5; }
+  100% { bottom: 98%;  opacity: 0; transform: scale(1.1); }
 }
 
-/* Legend below tank */
-.legend {
-  background: #0d1117;
-  border: 1px solid #1a3a5c;
-  border-top: none;
-  border-radius: 0 0 10px 10px;
-  max-height: 160px;
+/* ── Legend ─────────────────────────────────────────────────────────── */
+.fish-legend {
+  flex: 1;
   overflow-y: auto;
   scrollbar-width: thin;
-  scrollbar-color: #21262d transparent;
-  margin-bottom: 14px;
+  scrollbar-color: rgba(0,0,0,0.08) transparent;
 }
 
-.legend-row {
-  display: flex; align-items: center; gap: 8px;
-  padding: 5px 10px; border-bottom: 1px solid #161b22;
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 18px;
+  border-bottom: 1px solid rgba(255,255,255,0.45);
+  background: rgba(255,255,255,0.15);
 }
-.legend-row:last-child { border-bottom: none; }
-.legend-emoji { font-size: 16px; width: 22px; text-align: center; }
-.legend-name  { font-size: 12px; color: #c9d1d9; flex: 1; }
-.legend-rarity { font-size: 10px; font-weight: 600; text-transform: capitalize; }
+
+.legend-item:last-child { border-bottom: none; }
+.legend-emoji { font-size: 18px; width: 24px; text-align: center; }
+.legend-name  { flex: 1; font-size: 12px; font-weight: 600; color: #0f172a; }
+
+.rarity-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 10px;
+  border: 1px solid;
+  text-transform: capitalize;
+}
+
+.rarity-badge.common    { color: #475569; border-color: rgba(148,163,184,0.5); background: rgba(148,163,184,0.15); }
+.rarity-badge.uncommon  { color: #15803d; border-color: rgba(34,197,94,0.4);   background: rgba(34,197,94,0.12); }
+.rarity-badge.rare      { color: #0369a1; border-color: rgba(14,165,233,0.4);  background: rgba(14,165,233,0.12); }
+.rarity-badge.legendary { color: #b45309; border-color: rgba(245,158,11,0.4); background: rgba(245,158,11,0.12); }

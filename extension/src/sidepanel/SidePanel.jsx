@@ -241,64 +241,63 @@ function Aquarium({ fish }) {
 
 // ── Fishing scene animation ───────────────────────────────────────────────────
 
-const SCENE_PHASES = ['cast', 'wait', 'nibble', 'strike', 'splash'];
-
-function FishingScene({ onDone }) {
+function FishingScene({ boost = 0, onDone }) {
   const [phase, setPhase] = useState('cast');
   const [splashFish, setSplashFish] = useState(null);
 
   useEffect(() => {
-    // Pre-roll the fish so we can show it flying out during splash
-    const weights = ALL_FISH.map(f => ({ legendary: 3, rare: 12, uncommon: 25, common: 60 }[f.rarity]));
-    const total   = weights.reduce((a, b) => a + b, 0);
+    const w = getRarityWeights(boost);
+    const total = Object.values(w).reduce((a, b) => a + b, 0);
     let roll = Math.random() * total;
     let fish = ALL_FISH[ALL_FISH.length - 1];
-    for (let i = 0; i < ALL_FISH.length; i++) { roll -= weights[i]; if (roll <= 0) { fish = ALL_FISH[i]; break; } }
+    for (const f of ALL_FISH) { roll -= w[f.rarity]; if (roll <= 0) { fish = f; break; } }
     setSplashFish(fish);
 
-    const waitMs = 1200 + Math.random() * 1800; // 1.2–3s of suspense
-
-    const t1 = setTimeout(() => setPhase('wait'),   600);
-    const t2 = setTimeout(() => setPhase('nibble'), 600 + waitMs);
-    const t3 = setTimeout(() => setPhase('strike'), 600 + waitMs + 500);
-    const t4 = setTimeout(() => setPhase('splash'), 600 + waitMs + 900);
-    const t5 = setTimeout(() => onDone(fish),       600 + waitMs + 900 + 900);
-
+    const waitMs = 1400 + Math.random() * 1800;
+    const t1 = setTimeout(() => setPhase('wait'),   620);
+    const t2 = setTimeout(() => setPhase('nibble'), 620 + waitMs);
+    const t3 = setTimeout(() => setPhase('strike'), 620 + waitMs + 560);
+    const t4 = setTimeout(() => setPhase('splash'), 620 + waitMs + 960);
+    const t5 = setTimeout(() => onDone(fish),       620 + waitMs + 960 + 1300);
     return () => [t1, t2, t3, t4, t5].forEach(clearTimeout);
   }, []);
 
   const phaseLabel = {
-    cast:   'Casting…',
-    wait:   'Waiting…',
-    nibble: "Something's biting...",
-    strike: 'STRIKE! 🎯',
+    cast:   '🎣 Casting...',
+    wait:   '⏳ Waiting...',
+    nibble: "😮 Something's biting...",
+    strike: '⚡ STRIKE!',
     splash: '',
   }[phase];
 
+  // SVG line: from rod tip (upper right) to bobber (water center)
+  // Rod is at top:13% right:13% → tip ≈ (75%, 20%), bobber at (50%, 57%)
+  const showLine = phase !== 'cast';
+
   return (
     <div className="fishing-scene">
-      {/* Night sky */}
       <div className="scene-sky">
         <span className="scene-moon">🌙</span>
-        {['✦','✦','✧','✦','✧'].map((s, i) => (
-          <span key={i} className="scene-star" style={{ left: `${10 + i * 18}%`, top: `${8 + (i % 3) * 10}%`, animationDelay: `${i * 0.4}s` }}>{s}</span>
+        {[{l:10,t:9},{l:28,t:16},{l:52,t:7},{l:70,t:18},{l:20,t:28},{l:44,t:23}].map((s, i) => (
+          <span key={i} className="scene-star" style={{left:`${s.l}%`,top:`${s.t}%`,animationDelay:`${i*0.38}s`}}>✦</span>
         ))}
       </div>
 
-      {/* Rod + line */}
-      <div className={`scene-rod-wrap ${phase}`}>
-        <div className="scene-rod-emoji">🎣</div>
-        {phase !== 'cast' && (
-          <div className={`scene-line ${phase}`} />
-        )}
-      </div>
-
-      {/* Water surface */}
       <div className={`scene-water ${phase === 'strike' || phase === 'splash' ? 'choppy' : ''}`}>
-        <div className="wave w1" /><div className="wave w2" /><div className="wave w3" />
+        <div className="scene-wave w1" />
+        <div className="scene-wave w2" />
       </div>
 
-      {/* Bobber */}
+      <div className="scene-moon-reflect" />
+
+      <div className={`scene-rod ${phase}`}>🎣</div>
+
+      {showLine && (
+        <svg className="scene-svg" xmlns="http://www.w3.org/2000/svg">
+          <line className={`svg-fishing-line ${phase}`} x1="75%" y1="20%" x2="50%" y2="57%" />
+        </svg>
+      )}
+
       {(phase === 'wait' || phase === 'nibble') && (
         <div className={`scene-bobber ${phase}`}>
           <div className="bobber-stick" />
@@ -306,25 +305,65 @@ function FishingScene({ onDone }) {
         </div>
       )}
 
-      {/* Splash + fish reveal */}
       {phase === 'splash' && splashFish && (
         <div className="scene-splash">
+          <div className="splash-ring r1" />
+          <div className="splash-ring r2" />
+          <div className="splash-ring r3" />
           <div className="splash-drops">
-            {['💧','💧','💧','💧','💧','💧'].map((d, i) => (
-              <span key={i} className="splash-drop" style={{ '--angle': `${-60 + i * 24}deg`, animationDelay: `${i * 0.04}s` }}>{d}</span>
+            {['-80deg','-52deg','-24deg','4deg','32deg','60deg','88deg'].map((a, i) => (
+              <span key={i} className="splash-drop" style={{'--angle': a, animationDelay: `${i * 0.035}s`}}>💧</span>
             ))}
           </div>
           <div className="splash-fish">{splashFish.emoji}</div>
         </div>
       )}
 
-      {/* Status label */}
       {phaseLabel && (
-        <div className={`scene-label ${phase === 'strike' ? 'label-strike' : ''}`}>
-          {phaseLabel}
-        </div>
+        <div className={`scene-label ${phase === 'strike' ? 'label-strike' : ''}`}>{phaseLabel}</div>
       )}
     </div>
+  );
+}
+
+// ── Bait inventory bottom sheet ───────────────────────────────────────────────
+
+function BaitInventory({ inventory, selected, onSelect, onClose }) {
+  return (
+    <>
+      <div className="bait-sheet-backdrop" onClick={onClose} />
+      <div className="bait-sheet">
+        <div className="bait-sheet-handle" />
+        <div className="bait-sheet-title">Select Bait</div>
+        {inventory.map(bait => {
+          const odds  = oddsPercent(bait.boost);
+          const empty = bait.count === 0;
+          const sel   = selected?.id === bait.id;
+          return (
+            <div
+              key={bait.id}
+              className={`bait-option${sel ? ' selected' : ''}${empty ? ' empty' : ''}`}
+              onClick={() => { if (!empty) { onSelect(bait); onClose(); } }}
+            >
+              <span className="bait-option-emoji">{bait.emoji}</span>
+              <div className="bait-option-info">
+                <div className="bait-option-name">{bait.name}</div>
+                <div className="bait-option-desc">{bait.description}</div>
+                <div className="bait-odds-row">
+                  {['common','uncommon','rare','legendary'].map(r => (
+                    <span key={r} className={`odds-chip ${r}`}>{odds[r]}%</span>
+                  ))}
+                </div>
+              </div>
+              <div className="bait-option-right">
+                <span className="bait-option-count">{bait.count}x</span>
+                {sel && <span className="bait-option-check">✓</span>}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </>
   );
 }
 
@@ -348,24 +387,38 @@ function CatchReveal({ fish, onDismiss }) {
 // ── Main panel ────────────────────────────────────────────────────────────────
 
 export default function SidePanel() {
-  const [catches, setCatches]         = useState(MOCK_CATCHES);
-  const [baitCount, setBaitCount]     = useState(5);
-  const [fishing, setFishing]         = useState(false);
-  const [catchResult, setCatchResult] = useState(null);
+  const [catches, setCatches]           = useState(MOCK_CATCHES);
+  const [inventory, setInventory]       = useState(MOCK_BAIT_INVENTORY);
+  const [selectedBait, setSelectedBait] = useState(() => MOCK_BAIT_INVENTORY.find(b => b.count > 0) || MOCK_BAIT_INVENTORY[0]);
+  const [showBaitMenu, setShowBaitMenu] = useState(false);
+  const [fishing, setFishing]           = useState(false);
+  const [catchResult, setCatchResult]   = useState(null);
+
+  const baitCount = inventory.reduce((a, b) => a + b.count, 0);
   const caughtIds = new Set(catches.map(f => f.id));
+  const top10 = [...catches].sort((a, b) => RARITY_RANK[b.rarity] - RARITY_RANK[a.rarity]).slice(0, 10);
+  const activeBait = inventory.find(b => b.id === selectedBait?.id && b.count > 0)
+                  || inventory.find(b => b.count > 0)
+                  || BAIT_TYPES[0];
 
   useEffect(() => {
     const id = setInterval(() => {
-      setBaitCount(c => c + (Math.random() < 0.15 ? 1 : 0));
+      if (Math.random() < 0.15) {
+        setInventory(inv => inv.map(b => b.id === 'worm' ? { ...b, count: b.count + 1 } : b));
+      }
     }, 5000);
     return () => clearInterval(id);
   }, []);
 
-  const top10 = [...catches].sort((a, b) => RARITY_RANK[b.rarity] - RARITY_RANK[a.rarity]).slice(0, 10);
-
   function goFish() {
-    if (baitCount === 0 || fishing) return;
-    setBaitCount(c => Math.max(0, c - 1));
+    if (fishing || baitCount === 0) return;
+    const newInv = inventory.map(b => b.id === activeBait.id ? { ...b, count: b.count - 1 } : b);
+    setInventory(newInv);
+    const stillHas = newInv.find(b => b.id === activeBait.id)?.count > 0;
+    if (!stillHas) {
+      const next = newInv.find(b => b.count > 0);
+      if (next) setSelectedBait(next);
+    }
     setFishing(true);
   }
 
@@ -378,8 +431,16 @@ export default function SidePanel() {
 
   return (
     <div className="panel">
-      {fishing    && <FishingScene onDone={onSceneDone} />}
+      {fishing     && <FishingScene boost={activeBait.boost} onDone={onSceneDone} />}
       {catchResult && <CatchReveal fish={catchResult} onDismiss={() => setCatchResult(null)} />}
+      {showBaitMenu && (
+        <BaitInventory
+          inventory={inventory}
+          selected={selectedBait}
+          onSelect={setSelectedBait}
+          onClose={() => setShowBaitMenu(false)}
+        />
+      )}
 
       <header className="panel-header">
         <div className="header-brand">
@@ -389,12 +450,25 @@ export default function SidePanel() {
             <div className="header-sub">⚓ FISHER</div>
           </div>
         </div>
-        <div className="bait-chip">
+        <div className="bait-chip" onClick={() => setShowBaitMenu(true)}>
           <span className="bait-num">{baitCount}</span>
-          <span>🪱</span>
+          <span>{activeBait.emoji}</span>
           <span className="bait-label">baits</span>
         </div>
       </header>
+
+      <div className="bait-inventory">
+        {inventory.map(b => (
+          <div key={b.id} className={`inv-pill ${b.rarity}${b.count === 0 ? " inv-empty" : ""}`}>
+            <span className="inv-emoji">{b.emoji}</span>
+            <span className="inv-count">{b.count}</span>
+          </div>
+        ))}
+        <div className="inv-total">
+          <span className="inv-total-num">{baitCount}</span>
+          <span className="inv-total-label">total</span>
+        </div>
+      </div>
 
       <div className="btn-section">
         <button
