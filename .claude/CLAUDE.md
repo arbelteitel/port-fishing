@@ -26,7 +26,7 @@ The game should feel like a lightweight motivational layer over Port.io, not a r
 
 ### Chrome Extension
 
-This is the main product surface.
+This is the main product surface. It should feel like a native companion to Port.io: always close to the user's SDLC work, but never in the way.
 
 - Runs over Port.io.
 - Reads Port.io data to determine rewards.
@@ -34,6 +34,11 @@ This is the main product surface.
 - Lets the user go fish.
 - Opens the aquarium as a side panel or side experience on top of Port.io.
 - Should feel native, fast, and non-disruptive.
+- Surfaces rewards where users already notice SDLC progress, such as completed actions, merged changes, scorecard improvements, or service updates.
+- Makes the next game action obvious: bait earned, cast available, fish caught, aquarium updated.
+- Treats the aquarium as the emotional reward surface, not the main work surface.
+
+The extension should not become a generic overlay game. Its reason to exist is that it makes Port.io workflow progress feel more rewarding.
 
 ### Aquarium
 
@@ -70,6 +75,49 @@ The Lovable-based site is planned but not yet defined.
 - Design for per-user progress first. Team-wide mechanics can be added later.
 - The MVP should make the loop obvious: do useful work in Port.io, earn bait, catch fish, see collection progress.
 
+## Game Loop
+
+The core loop should be:
+
+1. A user completes a meaningful SDLC action in Port.io.
+2. The extension evaluates the action's value, rarity, speed, and context.
+3. The user earns Fishing Tokens / baits.
+4. The user spends bait to go fish.
+5. The fishing result is randomized, but weighted by the bait's source and quality.
+6. The caught fish appears in the aquarium and updates the fish-dex.
+
+This should be earned randomness: fishing must include surprise, but the odds should reflect real SDLC outcomes.
+
+## Reward Model
+
+MVP rewards should prioritize completed SDLC outcomes over raw activity. Good reward sources include:
+
+- Merged PRs or completed code changes.
+- Resolved incidents or closed operational work.
+- Completed scorecards or improved service maturity.
+- Service lifecycle events.
+- Ownership updates.
+- Production readiness improvements.
+- Other Port.io-backed actions that represent meaningful workflow progress.
+
+Avoid rewarding page visits, clicks, refreshes, or repeated low-value interactions as primary bait sources. If daily activity rewards exist, they should be small baseline nudges, not the main progression path.
+
+Fishing Tokens / baits should not behave like generic points. They should carry enough context to influence the fishing result: what action earned them, how valuable the action was, which service it affected, and whether the action was unusually fast or rare.
+
+## Rarity Model
+
+Fish rarity should combine chance with SDLC context:
+
+- **Base randomness**: fishing should still feel surprising.
+- **Action rarity**: uncommon or high-value Port.io events should improve odds.
+- **Action quality**: cleaner or faster workflow completion can slightly improve odds.
+- **Service context**: the affected service can change the available fish pool.
+- **User history**: repeated identical actions should not endlessly produce high-value outcomes.
+
+For example, if a branch is created and merged unusually quickly, that can slightly improve rarity odds. It should be a modifier, not the whole system. Speed alone should not beat more meaningful engineering outcomes.
+
+Service-based fish pools are important and should stay extensible. Future agents should expect the user to expand on how services map to fish types, habitats, themes, or rarity bands.
+
 ## Vocabulary
 
 - **Fishing Tokens / Baits**: The spendable reward currency users earn from Port.io activity.
@@ -87,3 +135,7 @@ The Lovable-based site is planned but not yet defined.
 - Keep language consistent: use "Fishing Tokens" and "baits" as the same concept unless the user later separates them.
 - Ask before adding major gameplay systems such as trading, leaderboards, teams, quests, or marketplaces.
 - Keep future implementation aligned with a hackathon-friendly MVP.
+- Do not make the game reward spammy or low-value actions.
+- Do not let randomness fully override meaningful SDLC context.
+- Prefer simple configurable formulas over hardcoded one-off reward logic.
+- Keep service-based fish pools extensible.
