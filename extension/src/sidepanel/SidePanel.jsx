@@ -38,20 +38,20 @@ const MOCK_BAIT_INVENTORY = [
 ];
 
 const ALL_FISH = [
-  { id: "coelacanth", name: "Coelacanth",  emoji: "🦖", rarity: "legendary", size: 44, description: "Ancient platform fish. Survives every breaking change." },
-  { id: "narwhal",    name: "Narwhal",     emoji: "🦄", rarity: "legendary", size: 38, description: "Pierces through stuck queue backlogs." },
-  { id: "whale",      name: "Blue Whale",  emoji: "🐋", rarity: "legendary", size: 52, description: "Swallows entire data lake migrations whole." },
-  { id: "starfish",   name: "Starfish",    emoji: "⭐", rarity: "legendary", size: 32, description: "A perfect UX moment." },
-  { id: "anglerfish", name: "Anglerfish",  emoji: "🔦", rarity: "rare",      size: 28, description: "Found in the deep query optimizer." },
-  { id: "manta_ray",  name: "Manta Ray",   emoji: "🦈", rarity: "rare",      size: 38, description: "Glides through complex workflows." },
-  { id: "squid",      name: "Giant Squid", emoji: "🦑", rarity: "rare",      size: 34, description: "Lurks in the lakehouse depths." },
-  { id: "seahorse",   name: "Seahorse",    emoji: "🐴", rarity: "rare",      size: 22, description: "Rare near polished feature releases." },
-  { id: "octopus",    name: "Octopus",     emoji: "🐙", rarity: "uncommon",  size: 30, description: "Tentacles reach every integration." },
+  { id: "coelacanth", name: "Coelacanth",  emoji: "🦖", rarity: "legendary", size: 58, description: "Ancient platform fish. Survives every breaking change." },
+  { id: "narwhal",    name: "Narwhal",     emoji: "🦄", rarity: "legendary", size: 54, description: "Pierces through stuck queue backlogs." },
+  { id: "whale",      name: "Blue Whale",  emoji: "🐋", rarity: "legendary", size: 62, description: "Swallows entire data lake migrations whole." },
+  { id: "starfish",   name: "Starfish",    emoji: "⭐", rarity: "legendary", size: 50, description: "A perfect UX moment." },
+  { id: "anglerfish", name: "Anglerfish",  emoji: "🔦", rarity: "rare",      size: 38, description: "Found in the deep query optimizer." },
+  { id: "manta_ray",  name: "Manta Ray",   emoji: "🦈", rarity: "rare",      size: 42, description: "Glides through complex workflows." },
+  { id: "squid",      name: "Giant Squid", emoji: "🦑", rarity: "rare",      size: 36, description: "Lurks in the lakehouse depths." },
+  { id: "seahorse",   name: "Seahorse",    emoji: "🐴", rarity: "rare",      size: 34, description: "Rare near polished feature releases." },
+  { id: "octopus",    name: "Octopus",     emoji: "🐙", rarity: "uncommon",  size: 28, description: "Tentacles reach every integration." },
   { id: "eel",        name: "Electric Eel",emoji: "⚡", rarity: "uncommon",  size: 24, description: "Powers the scheduler." },
   { id: "pufferfish", name: "Pufferfish",  emoji: "🐡", rarity: "uncommon",  size: 26, description: "Inflates on re-renders." },
-  { id: "clownfish",  name: "Clownfish",   emoji: "🐠", rarity: "common",    size: 20, description: "Lives in colorful UI components." },
-  { id: "bass",       name: "Sea Bass",    emoji: "🐟", rarity: "common",    size: 23, description: "Sturdy and deeply indexed." },
-  { id: "salmon",     name: "Salmon",      emoji: "🎏", rarity: "common",    size: 25, description: "Runs upstream through pipelines." },
+  { id: "clownfish",  name: "Clownfish",   emoji: "🐠", rarity: "common",    size: 17, description: "Lives in colorful UI components." },
+  { id: "bass",       name: "Sea Bass",    emoji: "🐟", rarity: "common",    size: 19, description: "Sturdy and deeply indexed." },
+  { id: "salmon",     name: "Salmon",      emoji: "🎏", rarity: "common",    size: 20, description: "Runs upstream through pipelines." },
 ];
 
 const MOCK_CATCHES = [
@@ -84,15 +84,18 @@ function Aquarium({ fish }) {
       if (existingById[f.id]) return existingById[f.id]; // keep existing state untouched
       const spd   = sizeToSpeed(f.size);
       const angle = Math.random() * Math.PI * 2;
+      const vx0   = Math.cos(angle) * spd;
       return {
         id: f.id,
         x: 40 + Math.random() * (W - 80),
         y: 30 + Math.random() * (H - 80),
-        vx: Math.cos(angle) * spd,
+        vx: vx0,
         vy: Math.sin(angle) * spd,
         baseSpeed: spd,
         bobPhase: Math.random() * Math.PI * 2,
-        wanderStrength: 0.04 + Math.random() * 0.03,
+        wanderStrength: 0.010 + Math.random() * 0.006,
+        faceRight: vx0 >= 0,
+        flipCooldown: 0,
         fleeTtl: 0,
         fleeVx: 0,
         fleeVy: 0,
@@ -159,14 +162,22 @@ function Aquarium({ fish }) {
         if (s.y < MARGIN)     { s.y = MARGIN;      s.vy =  Math.abs(s.vy); }
         if (s.y > H - MARGIN) { s.y = H - MARGIN;  s.vy = -Math.abs(s.vy); }
 
-        // 8. Visual tail-wag: tiny sinusoidal y offset on top of physics
+        // 8. Direction hysteresis — only flip facing after a cooldown to prevent rapid jitter
+        if (s.flipCooldown > 0) {
+          s.flipCooldown--;
+        } else if ((s.vx > 0) !== s.faceRight) {
+          s.faceRight    = s.vx > 0;
+          s.flipCooldown = 45;
+        }
+
+        // 9. Visual tail-wag: tiny sinusoidal y offset on top of physics
         const wagOffset = Math.sin(s.bobPhase * 1.8) * 2;
 
         const el = elemsRef.current[i];
         if (el) {
           el.style.left      = `${s.x}px`;
           el.style.top       = `${s.y + wagOffset}px`;
-          el.style.transform = `translate(-50%,-50%) scaleX(${s.vx < 0 ? -1 : 1})`;
+          el.style.transform = `translate(-50%,-50%) scaleX(${s.faceRight ? 1 : -1})`;
         }
       });
 
@@ -328,11 +339,11 @@ function FishingScene({ boost = 0, onDone }) {
 
 // ── Bait inventory bottom sheet ───────────────────────────────────────────────
 
-function BaitInventory({ inventory, selected, onSelect, onClose }) {
+function BaitInventory({ inventory, selected, onSelect, onClose, closing, onClosed }) {
   return (
     <>
-      <div className="bait-sheet-backdrop" onClick={onClose} />
-      <div className="bait-sheet">
+      <div className={`bait-sheet-backdrop${closing ? ' closing' : ''}`} onClick={onClose} />
+      <div className={`bait-sheet${closing ? ' closing' : ''}`} onAnimationEnd={closing ? onClosed : undefined}>
         <div className="bait-sheet-handle" />
         <div className="bait-sheet-title">Select Bait</div>
         {inventory.map(bait => {
@@ -390,7 +401,8 @@ export default function SidePanel() {
   const [catches, setCatches]           = useState(MOCK_CATCHES);
   const [inventory, setInventory]       = useState(MOCK_BAIT_INVENTORY);
   const [selectedBait, setSelectedBait] = useState(() => MOCK_BAIT_INVENTORY.find(b => b.count > 0) || MOCK_BAIT_INVENTORY[0]);
-  const [showBaitMenu, setShowBaitMenu] = useState(false);
+  const [showBaitMenu, setShowBaitMenu]     = useState(false);
+  const [baitMenuClosing, setBaitMenuClosing] = useState(false);
   const [fishing, setFishing]           = useState(false);
   const [catchResult, setCatchResult]   = useState(null);
 
@@ -438,7 +450,9 @@ export default function SidePanel() {
           inventory={inventory}
           selected={selectedBait}
           onSelect={setSelectedBait}
-          onClose={() => setShowBaitMenu(false)}
+          onClose={() => setBaitMenuClosing(true)}
+          closing={baitMenuClosing}
+          onClosed={() => { setShowBaitMenu(false); setBaitMenuClosing(false); }}
         />
       )}
 
@@ -456,19 +470,6 @@ export default function SidePanel() {
           <span className="bait-label">baits</span>
         </div>
       </header>
-
-      <div className="bait-inventory">
-        {inventory.map(b => (
-          <div key={b.id} className={`inv-pill ${b.rarity}${b.count === 0 ? " inv-empty" : ""}`}>
-            <span className="inv-emoji">{b.emoji}</span>
-            <span className="inv-count">{b.count}</span>
-          </div>
-        ))}
-        <div className="inv-total">
-          <span className="inv-total-num">{baitCount}</span>
-          <span className="inv-total-label">total</span>
-        </div>
-      </div>
 
       <div className="btn-section">
         <button
