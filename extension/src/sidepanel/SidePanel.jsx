@@ -260,47 +260,49 @@ function Aquarium({ fish, decorations, onMoveDecoration }) {
   );
 }
 
-// ── Fishing scene animation ───────────────────────────────────────────────────
+// ── Single bait bob ──────────────────────────────────────────────────────────
 
-function FishingScene({ boost = 0, baitId = "basic", onDone }) {
+function BaitBob({ cast, onCatch }) {
   const [phase, setPhase] = useState('bobbing');
-  const [splashFish, setSplashFish] = useState(null);
-  const [sparkles] = useState(() =>
-    Array.from({ length: 6 }, (_, i) => ({
-      id: i,
-      x: 30 + Math.random() * 40,
-      y: 20 + Math.random() * 30,
-      size: 3 + Math.random() * 5,
-      delay: 0.1 + Math.random() * 0.5,
-    }))
-  );
 
   useEffect(() => {
-    const w = getRarityWeights(boost);
-    const total = Object.values(w).reduce((a, b) => a + b, 0);
-    let rarityRoll = Math.random() * total;
-    let chosenRarity = "common";
-    for (const [rarity, weight] of Object.entries(w)) {
-      rarityRoll -= weight;
-      if (rarityRoll <= 0) { chosenRarity = rarity; break; }
-    }
-    const pool = ALL_FISH.filter(f => f.rarity === chosenRarity);
-    const fish = pool[Math.floor(Math.random() * pool.length)] ?? ALL_FISH[0];
-    setSplashFish(fish);
-
     const waitMs = 1200 + Math.random() * 800;
     const t1 = setTimeout(() => setPhase('nibble'), waitMs);
-    const t2 = setTimeout(() => setPhase('caught'), waitMs + 600);
-    const t3 = setTimeout(() => onDone(fish), waitMs + 600 + 1200);
-    return () => [t1, t2, t3].forEach(clearTimeout);
+    const t2 = setTimeout(() => {
+      setPhase('caught');
+      onCatch(cast);
+    }, waitMs + 600);
+    return () => [t1, t2].forEach(clearTimeout);
   }, []);
 
-  const rarityColor = splashFish ? RARITY_COLORS[splashFish.rarity] : '#fff';
-  const rarityGlow = splashFish ? RARITY_GLOW[splashFish.rarity] : 'transparent';
+  return (
+    <div className="fs-bob-slot">
+      {phase !== 'caught' ? (
+        <>
+          <div className={`fs-bait-wrap ${phase}`}>
+            <img className="fs-bait-sprite item-art" src={baitImg(cast.baitId)} alt="bait" />
+          </div>
+          <div className="fs-bait-shadow" />
+          <div className={`fs-ripples ${phase}`}>
+            <div className="fs-ripple r1" />
+            <div className="fs-ripple r2" />
+          </div>
+        </>
+      ) : (
+        <div className="fs-bob-caught">
+          <img src={cast.fish.img} alt={cast.fish.name} className="fish-sprite fs-bob-caught-fish" />
+        </div>
+      )}
+    </div>
+  );
+}
 
+// ── Fishing overlay ──────────────────────────────────────────────────────────
+
+function FishingOverlay({ casts, onCatch }) {
   return (
     <div className="fs-overlay">
-      <div className={`fs-card ${phase}`}>
+      <div className="fs-card">
         <div className="fs-water-bg">
           <div className="fs-light-rays" />
           <div className="fs-bubbles-bg">
@@ -314,56 +316,31 @@ function FishingScene({ boost = 0, baitId = "basic", onDone }) {
             ))}
           </div>
         </div>
-
-        {(phase === 'bobbing' || phase === 'nibble') && (
-          <div className="fs-bait-area">
-            <div className={`fs-bait-wrap ${phase}`}>
-              <img
-                className="fs-bait-sprite item-art"
-                src={baitImg(baitId)}
-                alt="bait"
-              />
-            </div>
-            <div className="fs-bait-shadow" />
-            <div className={`fs-ripples ${phase}`}>
-              <div className="fs-ripple r1" />
-              <div className="fs-ripple r2" />
-            </div>
-          </div>
-        )}
-
-        {phase === 'bobbing' && (
-          <div className="fs-label">Waiting for a bite...</div>
-        )}
-        {phase === 'nibble' && (
-          <div className="fs-label nibble">Something's biting!</div>
-        )}
-
-        {phase === 'caught' && splashFish && (
-          <div className="fs-reveal" style={{ '--rarity-color': rarityColor, '--rarity-glow': rarityGlow }}>
-            <div className="fs-reveal-burst" />
-            <div className="fs-reveal-fish">
-              <img
-                src={splashFish.img}
-                alt={splashFish.name}
-                className="fish-sprite"
-                style={{ width: sizeToPx(splashFish.size) * 1.5, height: sizeToPx(splashFish.size) * 1.5 }}
-              />
-            </div>
-            <div className="fs-reveal-name">{splashFish.name}</div>
-            <div className="fs-reveal-rarity" style={{ color: rarityColor }}>
-              {"★".repeat(RARITY_RANK[splashFish.rarity])}{"☆".repeat(4 - RARITY_RANK[splashFish.rarity])}
-            </div>
-            {sparkles.map(s => (
-              <div key={s.id} className="fs-sparkle" style={{
-                left: `${s.x}%`, top: `${s.y}%`,
-                '--size': `${s.size}px`,
-                animationDelay: `${s.delay}s`,
-              }} />
-            ))}
-          </div>
-        )}
+        <div className="fs-bait-row">
+          {casts.map(c => (
+            <BaitBob key={c.id} cast={c} onCatch={onCatch} />
+          ))}
+        </div>
       </div>
+    </div>
+  );
+}
+
+// ── Catch log feed ───────────────────────────────────────────────────────────
+
+function CatchLog({ entries }) {
+  if (entries.length === 0) return null;
+  return (
+    <div className="catch-log">
+      {entries.map(e => (
+        <div key={e.id} className="catch-log-entry" style={{ '--rarity-color': RARITY_COLORS[e.fish.rarity] }}>
+          <img src={e.fish.img} alt={e.fish.name} className="fish-sprite catch-log-icon" />
+          <span className="catch-log-text">
+            <strong style={{ color: RARITY_COLORS[e.fish.rarity] }}>{e.fish.name}</strong> was caught!
+          </span>
+          {e.isNew && <span className="catch-log-new">NEW</span>}
+        </div>
+      ))}
     </div>
   );
 }
@@ -657,8 +634,9 @@ export default function SidePanel() {
   const [selectedBait, setSelectedBait] = useState(() => MOCK_BAIT_INVENTORY.find(b => b.count > 0) || MOCK_BAIT_INVENTORY[0]);
   const [showBaitMenu, setShowBaitMenu]       = useState(false);
   const [baitMenuClosing, setBaitMenuClosing] = useState(false);
-  const [fishing, setFishing]           = useState(false);
-  const [catchResult, setCatchResult]   = useState(null);
+  const [activeCasts, setActiveCasts]   = useState([]);
+  const [catchLog, setCatchLog]         = useState([]);
+  const castIdRef = useRef(0);
 
   // Economy & gear
   const [goldCoins, setGoldCoins]         = useState(120);
@@ -696,7 +674,7 @@ export default function SidePanel() {
   }, []);
 
   function goFish() {
-    if (fishing || baitCount === 0) return;
+    if (baitCount === 0 || activeCasts.length >= 4) return;
     const newInv = inventory.map(b => b.id === activeBait.id ? { ...b, count: b.count - 1 } : b);
     setInventory(newInv);
     const stillHas = newInv.find(b => b.id === activeBait.id)?.count > 0;
@@ -704,14 +682,36 @@ export default function SidePanel() {
       const next = newInv.find(b => b.count > 0);
       if (next) setSelectedBait(next);
     }
-    setFishing(true);
+
+    const w = getRarityWeights(totalBoost);
+    const total = Object.values(w).reduce((a, b) => a + b, 0);
+    let roll = Math.random() * total;
+    let rarity = "common";
+    for (const [r, weight] of Object.entries(w)) {
+      roll -= weight;
+      if (roll <= 0) { rarity = r; break; }
+    }
+    const pool = ALL_FISH.filter(f => f.rarity === rarity);
+    const fish = pool[Math.floor(Math.random() * pool.length)] ?? ALL_FISH[0];
+
+    castIdRef.current += 1;
+    setActiveCasts(prev => [...prev, { id: castIdRef.current, baitId: activeBait.id, fish }]);
   }
 
-  function onSceneDone(fish) {
-    const isNew = !caughtIds.has(fish.id);
-    setCatches(prev => prev.find(f => f.id === fish.id) ? prev : [{ ...fish }, ...prev]);
-    setFishing(false);
-    setCatchResult({ ...fish, isNew });
+  function onBaitCaught(cast) {
+    const isNew = !caughtIds.has(cast.fish.id);
+    setCatches(prev => prev.find(f => f.id === cast.fish.id) ? prev : [{ ...cast.fish }, ...prev]);
+
+    const logId = cast.id;
+    setCatchLog(prev => [{ id: logId, fish: cast.fish, isNew }, ...prev].slice(0, 8));
+
+    setTimeout(() => {
+      setActiveCasts(prev => prev.filter(c => c.id !== cast.id));
+    }, 800);
+
+    setTimeout(() => {
+      setCatchLog(prev => prev.filter(e => e.id !== logId));
+    }, 4000);
   }
 
   // Market handlers
@@ -746,7 +746,7 @@ export default function SidePanel() {
 
   return (
     <div className="panel">
-      {catchResult && <CatchReveal fish={catchResult} onDismiss={() => setCatchResult(null)} />}
+      <CatchLog entries={catchLog} />
       {showMarket  && (
         <Market
           catches={catches}
