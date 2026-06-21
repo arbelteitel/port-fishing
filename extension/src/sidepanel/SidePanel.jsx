@@ -7,23 +7,36 @@ const RARITY_GLOW   = { common: "rgba(148,163,184,0.5)", uncommon: "rgba(34,197,
 const RARITY_RANK   = { legendary: 4, rare: 3, uncommon: 2, common: 1 };
 const SELL_PRICES   = { common: 5, uncommon: 15, rare: 40, legendary: 100 };
 const sizeToSpeed   = (size) => 22 / size;
-const sizeToPx      = (size) => Math.round(size * 2);
+const sizeToPx      = (size) => Math.round(size * 1.4);
+
+// ── Item art (rods & baits live in /items) ──────────────────────────────────────
+// Filenames: bait_<baitId>.png, <rodId>_rod.png, <rodId>_rod_bait_<baitId>.png
+const baitImg  = (baitId)        => `/items/bait_${baitId}.png`;
+const rodImg   = (rodId)         => `/items/${rodId}_rod.png`;
+const comboImg = (rodId, baitId) => `/items/${rodId}_rod_bait_${baitId}.png`;
 
 // ── Bait system ───────────────────────────────────────────────────────────────
+// ids match the bait_<id>.png asset names so combo art can be resolved.
 
 const BAIT_TYPES = [
-  { id: "worm",    name: "Common Worm",    emoji: "🪱", rarity: "common",    boost: 0,    price: 5,   description: "Gets the job done. Barely." },
-  { id: "lure",    name: "Shiny Lure",     emoji: "🪝", rarity: "uncommon",  boost: 0.2,  price: 20,  description: "Flashy enough to attract better fish." },
-  { id: "golden",  name: "Golden Hook",    emoji: "✨", rarity: "rare",      boost: 0.45, price: 60,  description: "Rare fish find it irresistible." },
-  { id: "chum",    name: "Legendary Chum", emoji: "🌟", rarity: "legendary", boost: 0.75, price: 150, description: "Dark arts. Almost guarantees something extraordinary." },
+  { id: "basic",        name: "Doughball",    img: baitImg("basic"),        rarity: "common",    boost: 0,    price: 5,   description: "Gets the job done. Barely." },
+  { id: "green",        name: "Algae Pellet", img: baitImg("green"),        rarity: "common",    boost: 0.12, price: 15,  description: "Fresh and grassy. Fish nibble politely." },
+  { id: "red",          name: "Salmon Roe",   img: baitImg("red"),          rarity: "uncommon",  boost: 0.22, price: 25,  description: "Bright and juicy. Hard to ignore." },
+  { id: "black",        name: "Boilie",       img: baitImg("black"),        rarity: "uncommon",  boost: 0.32, price: 40,  description: "Dense and dark. Sinks to the good spots." },
+  { id: "fish",         name: "Cut Bait",     img: baitImg("fish"),         rarity: "rare",      boost: 0.42, price: 65,  description: "A chunk of the real thing. Predators love it." },
+  { id: "fish_black",   name: "Chum Slick",   img: baitImg("fish_black"),   rarity: "rare",      boost: 0.52, price: 95,  description: "A trail of temptation. Draws a crowd." },
+  { id: "yellow_point", name: "Amber Jig",    img: baitImg("yellow_point"), rarity: "legendary", boost: 0.63, price: 135, description: "Glints like treasure. Rare fish circle in." },
+  { id: "golden",       name: "Golden Lure",  img: baitImg("golden"),       rarity: "legendary", boost: 0.75, price: 185, description: "Dark arts. Almost guarantees something extraordinary." },
 ];
 
 // ── Rod system ────────────────────────────────────────────────────────────────
+// ids match the <id>_rod.png asset names.
 
 const ROD_TYPES = [
-  { id: "basic",  name: "Basic Rod",   emoji: "🎣", price: 0,   rodBoost: 0,    description: "A trusty rod. Gets the job done." },
-  { id: "silver", name: "Silver Rod",  emoji: "🥈", price: 100, rodBoost: 0.15, description: "Better sensitivity. Improved odds." },
-  { id: "golden", name: "Golden Rod",  emoji: "🏅", price: 300, rodBoost: 0.30, description: "Forged from rare catches. Serious power." },
+  { id: "basic", name: "Basic Rod",  img: rodImg("basic"), price: 0,   rodBoost: 0,    description: "A trusty rod. Gets the job done." },
+  { id: "black", name: "Carbon Rod", img: rodImg("black"), price: 120, rodBoost: 0.12, description: "Stiff and sensitive. Improved odds." },
+  { id: "blue",  name: "Tidal Rod",  img: rodImg("blue"),  price: 280, rodBoost: 0.22, description: "Tuned for the deep. Serious power." },
+  { id: "pink",  name: "Coral Rod",  img: rodImg("pink"),  price: 550, rodBoost: 0.35, description: "Forged from rare catches. The finest cast." },
 ];
 
 // ── Decorations ───────────────────────────────────────────────────────────────
@@ -49,12 +62,7 @@ function oddsPercent(boost) {
   return Object.fromEntries(Object.entries(w).map(([k, v]) => [k, Math.round(v / t * 100)]));
 }
 
-const MOCK_BAIT_INVENTORY = [
-  { ...BAIT_TYPES[0], count: 8 },
-  { ...BAIT_TYPES[1], count: 3 },
-  { ...BAIT_TYPES[2], count: 1 },
-  { ...BAIT_TYPES[3], count: 0 },
-];
+const MOCK_BAIT_INVENTORY = BAIT_TYPES.map((b, i) => ({ ...b, count: [8, 5, 3, 2, 1, 0, 0, 0][i] }));
 
 const ALL_FISH = REGISTRY_FISH;
 
@@ -70,7 +78,7 @@ const MOCK_CATCHES = [
 
 // ── Physics aquarium ──────────────────────────────────────────────────────────
 
-function Aquarium({ fish, decorations, onMoveDecoration, fishingActive, fishingBoost, onFishingDone }) {
+function Aquarium({ fish, decorations, onMoveDecoration }) {
   const containerRef = useRef(null);
   const elemsRef     = useRef([]);
   const stateRef     = useRef([]);
@@ -88,10 +96,12 @@ function Aquarium({ fish, decorations, onMoveDecoration, fishingActive, fishingB
       const spd   = sizeToSpeed(f.size);
       const angle = Math.random() * Math.PI * 2;
       const vx0   = Math.cos(angle) * spd;
+      const halfPx = sizeToPx(f.size) / 2;
       return {
         id: f.id,
+        halfPx,
         x: 40 + Math.random() * (W - 80),
-        y: 30 + Math.random() * (H - 80),
+        y: 30 + Math.random() * (H - 100),
         vx: vx0,
         vy: Math.sin(angle) * spd,
         baseSpeed: spd,
@@ -110,7 +120,8 @@ function Aquarium({ fish, decorations, onMoveDecoration, fishingActive, fishingB
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
-    const MARGIN     = 16;
+    const SEABED     = 22;
+    const MARGIN     = 14;
     const WALL_RANGE = 48;
     const WALL_FORCE = 0.12;
 
@@ -118,6 +129,7 @@ function Aquarium({ fish, decorations, onMoveDecoration, fishingActive, fishingB
       const W = container.clientWidth;
       const H = container.clientHeight;
       stateRef.current.forEach((s, i) => {
+        const bottomLimit = H - SEABED - s.halfPx;
         s.bobPhase += 0.028;
         const speedMod  = 1 + Math.sin(s.bobPhase) * 0.28;
         const targetSpd = s.baseSpeed * speedMod;
@@ -129,20 +141,20 @@ function Aquarium({ fish, decorations, onMoveDecoration, fishingActive, fishingB
         const spd = Math.sqrt(s.vx * s.vx + s.vy * s.vy) || 1;
         s.vx = (s.vx / spd) * targetSpd;
         s.vy = (s.vy / spd) * targetSpd;
-        if (s.x < WALL_RANGE)     s.vx += WALL_FORCE * (1 - s.x / WALL_RANGE);
-        if (s.x > W - WALL_RANGE) s.vx -= WALL_FORCE * (1 - (W - s.x) / WALL_RANGE);
-        if (s.y < WALL_RANGE)     s.vy += WALL_FORCE * (1 - s.y / WALL_RANGE);
-        if (s.y > H - WALL_RANGE) s.vy -= WALL_FORCE * (1 - (H - s.y) / WALL_RANGE);
+        if (s.x < WALL_RANGE)            s.vx += WALL_FORCE * (1 - s.x / WALL_RANGE);
+        if (s.x > W - WALL_RANGE)        s.vx -= WALL_FORCE * (1 - (W - s.x) / WALL_RANGE);
+        if (s.y < WALL_RANGE)            s.vy += WALL_FORCE * (1 - s.y / WALL_RANGE);
+        if (s.y > bottomLimit - WALL_RANGE) s.vy -= WALL_FORCE * (1 - (bottomLimit - s.y) / WALL_RANGE);
         if (s.fleeTtl > 0) {
           s.vx += s.fleeVx; s.vy += s.fleeVy;
           s.fleeVx *= 0.88; s.fleeVy *= 0.88;
           s.fleeTtl--;
         }
         s.x += s.vx; s.y += s.vy;
-        if (s.x < MARGIN)     { s.x = MARGIN;     s.vx =  Math.abs(s.vx); }
-        if (s.x > W - MARGIN) { s.x = W - MARGIN; s.vx = -Math.abs(s.vx); }
-        if (s.y < MARGIN)     { s.y = MARGIN;      s.vy =  Math.abs(s.vy); }
-        if (s.y > H - MARGIN) { s.y = H - MARGIN;  s.vy = -Math.abs(s.vy); }
+        if (s.x < MARGIN)      { s.x = MARGIN;       s.vx =  Math.abs(s.vx); }
+        if (s.x > W - MARGIN)  { s.x = W - MARGIN;   s.vx = -Math.abs(s.vx); }
+        if (s.y < MARGIN)      { s.y = MARGIN;        s.vy =  Math.abs(s.vy); }
+        if (s.y > bottomLimit) { s.y = bottomLimit;   s.vy = -Math.abs(s.vy); }
         if (s.flipCooldown > 0) {
           s.flipCooldown--;
         } else if ((s.vx > 0) !== s.faceRight) {
@@ -206,7 +218,6 @@ function Aquarium({ fish, decorations, onMoveDecoration, fishingActive, fishingB
 
   return (
     <div className="tank" ref={containerRef} onClick={handleClick}>
-      {fishingActive && <FishingScene boost={fishingBoost} onDone={onFishingDone} />}
       <div className="water-shimmer" />
       <div className="bubbles">
         {[...Array(10)].map((_, i) => (
@@ -251,9 +262,18 @@ function Aquarium({ fish, decorations, onMoveDecoration, fishingActive, fishingB
 
 // ── Fishing scene animation ───────────────────────────────────────────────────
 
-function FishingScene({ boost = 0, onDone }) {
-  const [phase, setPhase] = useState('cast');
+function FishingScene({ boost = 0, baitId = "basic", onDone }) {
+  const [phase, setPhase] = useState('bobbing');
   const [splashFish, setSplashFish] = useState(null);
+  const [sparkles] = useState(() =>
+    Array.from({ length: 6 }, (_, i) => ({
+      id: i,
+      x: 30 + Math.random() * 40,
+      y: 20 + Math.random() * 30,
+      size: 3 + Math.random() * 5,
+      delay: 0.1 + Math.random() * 0.5,
+    }))
+  );
 
   useEffect(() => {
     const w = getRarityWeights(boost);
@@ -268,57 +288,82 @@ function FishingScene({ boost = 0, onDone }) {
     const fish = pool[Math.floor(Math.random() * pool.length)] ?? ALL_FISH[0];
     setSplashFish(fish);
 
-    const waitMs = 600 + Math.random() * 800;
-    const t1 = setTimeout(() => setPhase('wait'),   250);
-    const t2 = setTimeout(() => setPhase('nibble'), 250 + waitMs);
-    const t3 = setTimeout(() => setPhase('strike'), 250 + waitMs + 280);
-    const t4 = setTimeout(() => setPhase('splash'), 250 + waitMs + 500);
-    const t5 = setTimeout(() => onDone(fish),       250 + waitMs + 500 + 650);
-    return () => [t1, t2, t3, t4, t5].forEach(clearTimeout);
+    const waitMs = 1200 + Math.random() * 800;
+    const t1 = setTimeout(() => setPhase('nibble'), waitMs);
+    const t2 = setTimeout(() => setPhase('caught'), waitMs + 600);
+    const t3 = setTimeout(() => onDone(fish), waitMs + 600 + 1200);
+    return () => [t1, t2, t3].forEach(clearTimeout);
   }, []);
 
-  const statusLabel = {
-    cast:   null,
-    wait:   'Waiting...',
-    nibble: "Something's biting!",
-    strike: '⚡ STRIKE!',
-    splash: null,
-  }[phase];
-
-  const isStrike = phase === 'strike';
+  const rarityColor = splashFish ? RARITY_COLORS[splashFish.rarity] : '#fff';
+  const rarityGlow = splashFish ? RARITY_GLOW[splashFish.rarity] : 'transparent';
 
   return (
-    <div className="fishing-scene">
-      {/* Rod pinned to top-right */}
-      <div className={`fs-rod ${phase}`}>🎣</div>
-
-      {/* Line from rod tip to bobber */}
-      {phase !== 'cast' && (
-        <svg className="fs-svg">
-          <line className={`fs-line ${isStrike ? 'taut' : ''}`} x1="82%" y1="8%" x2="50%" y2="44%" />
-        </svg>
-      )}
-
-      {/* Bobber */}
-      {(phase === 'wait' || phase === 'nibble') && (
-        <div className={`fs-bobber ${phase === 'nibble' ? 'nibble' : ''}`}>
-          <div className="fs-bobber-top" />
-          <div className="fs-bobber-bot" />
+    <div className="fs-overlay">
+      <div className={`fs-card ${phase}`}>
+        <div className="fs-water-bg">
+          <div className="fs-light-rays" />
+          <div className="fs-bubbles-bg">
+            {[...Array(8)].map((_, i) => (
+              <div key={i} className="fs-mini-bubble" style={{
+                left: `${10 + i * 11}%`,
+                animationDelay: `${i * 0.4}s`,
+                width: `${3 + (i % 3) * 2}px`,
+                height: `${3 + (i % 3) * 2}px`,
+              }} />
+            ))}
+          </div>
         </div>
-      )}
 
-      {/* Splash + fish reveal */}
-      {phase === 'splash' && splashFish && (
-        <div className="fs-splash">
-          <div className="fs-ring r1" /><div className="fs-ring r2" /><div className="fs-ring r3" />
-          <img src={splashFish.img} alt={splashFish.name} className="fish-sprite fs-catch-fish" style={{ width: sizeToPx(splashFish.size), height: sizeToPx(splashFish.size) }} />
-        </div>
-      )}
+        {(phase === 'bobbing' || phase === 'nibble') && (
+          <div className="fs-bait-area">
+            <div className={`fs-bait-wrap ${phase}`}>
+              <img
+                className="fs-bait-sprite item-art"
+                src={baitImg(baitId)}
+                alt="bait"
+              />
+            </div>
+            <div className="fs-bait-shadow" />
+            <div className={`fs-ripples ${phase}`}>
+              <div className="fs-ripple r1" />
+              <div className="fs-ripple r2" />
+            </div>
+          </div>
+        )}
 
-      {/* Status pill */}
-      {statusLabel && (
-        <div className={`fs-status ${isStrike ? 'strike' : ''}`}>{statusLabel}</div>
-      )}
+        {phase === 'bobbing' && (
+          <div className="fs-label">Waiting for a bite...</div>
+        )}
+        {phase === 'nibble' && (
+          <div className="fs-label nibble">Something's biting!</div>
+        )}
+
+        {phase === 'caught' && splashFish && (
+          <div className="fs-reveal" style={{ '--rarity-color': rarityColor, '--rarity-glow': rarityGlow }}>
+            <div className="fs-reveal-burst" />
+            <div className="fs-reveal-fish">
+              <img
+                src={splashFish.img}
+                alt={splashFish.name}
+                className="fish-sprite"
+                style={{ width: sizeToPx(splashFish.size) * 1.5, height: sizeToPx(splashFish.size) * 1.5 }}
+              />
+            </div>
+            <div className="fs-reveal-name">{splashFish.name}</div>
+            <div className="fs-reveal-rarity" style={{ color: rarityColor }}>
+              {"★".repeat(RARITY_RANK[splashFish.rarity])}{"☆".repeat(4 - RARITY_RANK[splashFish.rarity])}
+            </div>
+            {sparkles.map(s => (
+              <div key={s.id} className="fs-sparkle" style={{
+                left: `${s.x}%`, top: `${s.y}%`,
+                '--size': `${s.size}px`,
+                animationDelay: `${s.delay}s`,
+              }} />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -342,7 +387,7 @@ function BaitInventory({ inventory, selected, onSelect, onClose, closing, onClos
               className={`bait-option${sel ? ' selected' : ''}${empty ? ' empty' : ''}`}
               onClick={() => { if (!empty) { onSelect(bait); onClose(); } }}
             >
-              <span className="bait-option-emoji">{bait.emoji}</span>
+              <img className="bait-option-emoji item-art" src={bait.img} alt={bait.name} />
               <div className="bait-option-info">
                 <div className="bait-option-name">{bait.name}</div>
                 <div className="bait-option-desc">{bait.description}</div>
@@ -402,7 +447,7 @@ function BagMenu({ inventory, selectedBait, equippedRod, ownedRodIds, onSelectBa
         {view === "main" && (
           <>
             <div className="bag-row" onClick={() => setView("rod")}>
-              <span className="bag-row-icon">{equippedRod.emoji}</span>
+              <img className="bag-row-icon item-art" src={equippedRod.img} alt={equippedRod.name} />
               <div className="bag-row-info">
                 <div className="bag-row-label">Rod</div>
                 <div className="bag-row-name">{equippedRod.name}</div>
@@ -410,7 +455,7 @@ function BagMenu({ inventory, selectedBait, equippedRod, ownedRodIds, onSelectBa
               <span className="bag-row-change">Change →</span>
             </div>
             <div className="bag-row" onClick={() => setView("bait")}>
-              <span className="bag-row-icon">{selectedBait.emoji}</span>
+              <img className="bag-row-icon item-art" src={selectedBait.img} alt={selectedBait.name} />
               <div className="bag-row-info">
                 <div className="bag-row-label">Bait</div>
                 <div className="bag-row-name">{selectedBait.name} <span className="bag-row-count">({inventory.find(b => b.id === selectedBait.id)?.count ?? 0}x)</span></div>
@@ -424,7 +469,7 @@ function BagMenu({ inventory, selectedBait, equippedRod, ownedRodIds, onSelectBa
           const sel = equippedRod.id === rod.id;
           return (
             <div key={rod.id} className={`bait-option${sel ? ' selected' : ''}`} onClick={() => { onSelectRod(rod); setView("main"); onClose(); }}>
-              <span className="bait-option-emoji">{rod.emoji}</span>
+              <img className="bait-option-emoji item-art" src={rod.img} alt={rod.name} />
               <div className="bait-option-info">
                 <div className="bait-option-name">{rod.name}</div>
                 <div className="bait-option-desc">{rod.description}</div>
@@ -449,7 +494,7 @@ function BagMenu({ inventory, selectedBait, equippedRod, ownedRodIds, onSelectBa
               className={`bait-option${sel ? ' selected' : ''}${empty ? ' empty' : ''}`}
               onClick={() => { if (!empty) { onSelectBait(bait); setView("main"); onClose(); } }}
             >
-              <span className="bait-option-emoji">{bait.emoji}</span>
+              <img className="bait-option-emoji item-art" src={bait.img} alt={bait.name} />
               <div className="bait-option-info">
                 <div className="bait-option-name">{bait.name}</div>
                 <div className="bait-option-desc">{bait.description}</div>
@@ -528,7 +573,7 @@ function Market({ catches, inventory, goldCoins, ownedRodIds, ownedDecorations, 
             const canAfford = goldCoins >= bait.price;
             return (
               <div key={bait.id} className="market-row">
-                <span className="market-row-emoji">{bait.emoji}</span>
+                <img className="market-row-emoji item-art" src={bait.img} alt={bait.name} />
                 <div className="market-row-info">
                   <div className="market-row-name">{bait.name}</div>
                   <div className="market-row-desc">{bait.description}</div>
@@ -550,7 +595,7 @@ function Market({ catches, inventory, goldCoins, ownedRodIds, ownedDecorations, 
             const canAfford = goldCoins >= rod.price;
             return (
               <div key={rod.id} className="market-row">
-                <span className="market-row-emoji">{rod.emoji}</span>
+                <img className="market-row-emoji item-art" src={rod.img} alt={rod.name} />
                 <div className="market-row-info">
                   <div className="market-row-name">{rod.name}</div>
                   <div className="market-row-desc">{rod.description}</div>
@@ -636,6 +681,10 @@ export default function SidePanel() {
                   || BAIT_TYPES[0];
 
   const totalBoost = Math.min(0.9, activeBait.boost + equippedRod.rodBoost);
+
+  useEffect(() => {
+    chrome.storage.local.set({ panelCatchIds: catches.map(f => f.id) });
+  }, [catches]);
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -738,7 +787,7 @@ export default function SidePanel() {
 
       <header className="panel-header">
         <div className="header-brand">
-          <span className="header-logo">🎣</span>
+          <img className="header-logo item-art" src={comboImg(equippedRod.id, activeBait.id)} alt={`${equippedRod.name} + ${activeBait.name}`} />
           <div>
             <div className="header-title">Port Fishing</div>
             <div className="header-sub">⚓ FISHER</div>
@@ -749,11 +798,12 @@ export default function SidePanel() {
             <span className="gold-icon">🪙</span>
             <span className="gold-num">{goldCoins}</span>
           </div>
+          <button className="icon-btn" onClick={() => chrome.runtime.sendMessage({ type: "OPEN_AQUARIUM_WINDOW" })} title="Full-screen aquarium">⛶</button>
           <button className="icon-btn" onClick={() => setShowBag(true)} title="Loadout">🎒</button>
           <button className="icon-btn market-btn" onClick={() => setShowMarket(true)} title="Market">🏪</button>
           <div className="bait-chip" onClick={() => setShowBaitMenu(true)}>
             <span className="bait-num">{baitCount}</span>
-            <span>{activeBait.emoji}</span>
+            <img className="bait-chip-art item-art" src={activeBait.img} alt={activeBait.name} />
             <span className="bait-label">baits</span>
           </div>
         </div>
@@ -765,18 +815,23 @@ export default function SidePanel() {
           onClick={goFish}
           disabled={baitCount === 0 || fishing}
         >
-          <span className="fish-btn-icon">🎣</span>
+          <img className="fish-btn-icon item-art" src={comboImg(equippedRod.id, activeBait.id)} alt="" />
           <span className="fish-btn-label">{baitCount === 0 ? "No bait" : "Fish!"}</span>
         </button>
       </div>
+
+      {fishing && (
+        <FishingScene
+          boost={totalBoost}
+          baitId={activeBait.id}
+          onDone={onSceneDone}
+        />
+      )}
 
       <Aquarium
         fish={top10}
         decorations={ownedDecorations}
         onMoveDecoration={moveDecoration}
-        fishingActive={fishing}
-        fishingBoost={totalBoost}
-        onFishingDone={onSceneDone}
       />
     </div>
   );

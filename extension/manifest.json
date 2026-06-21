@@ -3,7 +3,7 @@
   "name": "Port Fishing",
   "version": "0.1.0",
   "description": "Turn your Port.io SDLC activity into a fishing game.",
-  "permissions": ["storage", "alarms", "sidePanel"],
+  "permissions": ["storage", "alarms", "sidePanel", "windows"],
   "host_permissions": ["https://app.getport.io/*", "https://api.getport.io/*"],
   "background": {
     "service_worker": "src/background/background.js",

@@ -131,8 +131,18 @@ body {
 }
 
 .bait-worm-icon {
-  font-size: 24px;
-  opacity: 0.6;
+  width: 26px;
+  height: 26px;
+  image-rendering: pixelated;
+  object-fit: contain;
+  opacity: 0.85;
+}
+
+.bait-pill-art {
+  width: 16px;
+  height: 16px;
+  image-rendering: pixelated;
+  object-fit: contain;
 }
 
 .bait-types-row {

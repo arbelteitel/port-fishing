@@ -101,6 +101,17 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     sendResponse({ ok: true });
   }
 
+  if (msg.type === "OPEN_AQUARIUM_WINDOW") {
+    chrome.windows.create({
+      url: chrome.runtime.getURL("aquarium.html"),
+      type: "popup",
+      width: 1000,
+      height: 680,
+      focused: true,
+    });
+    sendResponse({ ok: true });
+  }
+
   if (msg.type === "GET_CATCHES") {
     handleGetCatches(msg.userEmail).then(sendResponse);
     return true;

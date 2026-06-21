@@ -18,10 +18,10 @@ const RARITY_GLOW = {
 const RARITY_RANK = { legendary: 4, rare: 3, uncommon: 2, common: 1 };
 
 const BAIT_TYPES = [
-  { id: "worm",   name: "Worm",   emoji: "🪱", rarity: "common",    boost: 0 },
-  { id: "lure",   name: "Lure",   emoji: "🪝", rarity: "uncommon",  boost: 0.2 },
-  { id: "golden", name: "Golden", emoji: "✨", rarity: "rare",      boost: 0.45 },
-  { id: "chum",   name: "Chum",   emoji: "🌟", rarity: "legendary", boost: 0.75 },
+  { id: "basic",  name: "Doughball",   img: "/items/bait_basic.png",  rarity: "common",    boost: 0 },
+  { id: "red",    name: "Salmon Roe",  img: "/items/bait_red.png",    rarity: "uncommon",  boost: 0.2 },
+  { id: "fish",   name: "Cut Bait",    img: "/items/bait_fish.png",   rarity: "rare",      boost: 0.45 },
+  { id: "golden", name: "Golden Lure", img: "/items/bait_golden.png", rarity: "legendary", boost: 0.75 },
 ];
 
 const MOCK_USER = "FISHER";
@@ -206,7 +206,7 @@ export default function App() {
   async function pollNow() {
     setLoading(true);
     await new Promise(r => setTimeout(r, 600));
-    setBaitInventory(prev => prev.map(b => b.id === "worm" ? { ...b, count: b.count + 2 } : b));
+    setBaitInventory(prev => prev.map(b => b.id === "basic" ? { ...b, count: b.count + 2 } : b));
     setLoading(false);
   }
 
@@ -245,12 +245,12 @@ export default function App() {
               <div className="bait-meta-label">Baits available</div>
               <div className="bait-meta-hint">Spend one to go fishing</div>
             </div>
-            <span className="bait-worm-icon">🪱</span>
+            <img className="bait-worm-icon" src="/items/bait_basic.png" alt="bait" />
           </div>
           <div className="bait-types-row">
             {baitInventory.map(b => (
               <div key={b.id} className={`bait-pill ${b.rarity}${b.count === 0 ? " empty" : ""}`}>
-                {b.emoji} {b.count}
+                <img className="bait-pill-art" src={b.img} alt={b.name} /> {b.count}
               </div>
             ))}
           </div>

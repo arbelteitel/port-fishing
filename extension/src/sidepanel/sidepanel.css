@@ -5,125 +5,245 @@ html, body, #root {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
-/* ── Fishing scene — transparent overlay inside tank ─────────────────────────── */
-.fishing-scene {
-  position: absolute; inset: 0; z-index: 10;
+/* ── Fishing scene — floating overlay card ──────────────────────────────────── */
+.fs-overlay {
+  position: fixed; inset: 0; z-index: 50;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(0,20,40,0.55);
+  backdrop-filter: blur(6px);
+  animation: fs-overlay-in 0.3s ease;
   pointer-events: none;
+}
+@keyframes fs-overlay-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.fs-card {
+  width: 260px; height: 260px;
+  border-radius: 24px;
+  position: relative;
   overflow: hidden;
+  box-shadow:
+    0 20px 60px rgba(0,0,0,0.4),
+    0 0 0 1px rgba(255,255,255,0.1),
+    inset 0 1px 0 rgba(255,255,255,0.15);
+  animation: fs-card-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes fs-card-in {
+  0%   { transform: scale(0.7) translateY(30px); opacity: 0; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
 }
 
-/* Rod pinned to top-right corner */
-.fs-rod {
-  position: absolute; top: 6%; right: 6%;
-  font-size: 40px;
-  transform-origin: bottom right;
-  transform: rotate(-20deg);
-  filter: drop-shadow(0 1px 4px rgba(0,0,0,0.4));
-}
-.fs-rod.cast { animation: fs-rod-cast 0.3s cubic-bezier(0.2,0.6,0.35,1) forwards; }
-@keyframes fs-rod-cast {
-  0%   { transform: rotate(50deg); }
-  60%  { transform: rotate(-28deg); }
-  100% { transform: rotate(-20deg); }
-}
-.fs-rod.strike { animation: fs-rod-shake 0.25s ease-in-out; }
-@keyframes fs-rod-shake {
-  0%,100% { transform: rotate(-20deg); }
-  33%     { transform: rotate(-10deg) translateY(-3px); }
-  66%     { transform: rotate(-30deg) translateY(2px); }
-}
-
-/* SVG line */
-.fs-svg {
+.fs-water-bg {
   position: absolute; inset: 0;
-  width: 100%; height: 100%;
-  pointer-events: none; overflow: visible;
+  background: linear-gradient(180deg,
+    #064e7a 0%,
+    #0c6fa0 30%,
+    #1089c4 60%,
+    #1a9ed9 100%
+  );
 }
-.fs-line {
-  fill: none; stroke-linecap: round;
-  stroke: rgba(255,255,255,0.7); stroke-width: 1.2;
+.fs-light-rays {
+  position: absolute; inset: 0;
+  background:
+    linear-gradient(170deg, rgba(255,255,255,0.08) 0%, transparent 40%),
+    linear-gradient(190deg, rgba(255,255,255,0.05) 10%, transparent 50%),
+    linear-gradient(160deg, rgba(255,255,255,0.03) 20%, transparent 60%);
+  animation: fs-rays-drift 4s ease-in-out infinite alternate;
 }
-.fs-line.taut {
-  stroke: rgba(255,255,255,0.95); stroke-width: 2;
-  animation: fs-line-snap 0.2s ease;
+@keyframes fs-rays-drift {
+  0%   { opacity: 0.6; }
+  100% { opacity: 1; }
 }
-@keyframes fs-line-snap { 50% { stroke-width: 4; stroke: rgba(255,240,100,1); } }
 
-/* Bobber — floats at mid-tank "surface" */
-.fs-bobber {
+.fs-bubbles-bg {
+  position: absolute; inset: 0;
+  pointer-events: none;
+}
+.fs-mini-bubble {
   position: absolute;
-  left: 50%; top: 44%;
+  bottom: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 25%, rgba(255,255,255,0.7), rgba(255,255,255,0.15));
+  animation: fs-bubble-rise 3.5s ease-in infinite;
+  opacity: 0;
+}
+@keyframes fs-bubble-rise {
+  0%   { bottom: 0; opacity: 0; transform: translateX(0) scale(0.5); }
+  15%  { opacity: 0.4; }
+  50%  { opacity: 0.3; transform: translateX(4px) scale(0.8); }
+  100% { bottom: 100%; opacity: 0; transform: translateX(-3px) scale(1); }
+}
+
+/* Bait bobbing */
+.fs-bait-area {
+  position: absolute;
+  left: 50%; top: 45%;
   transform: translate(-50%, -50%);
   display: flex; flex-direction: column; align-items: center;
 }
-.fs-bobber-top {
-  width: 3px; height: 12px;
-  background: #b45309; border-radius: 2px;
+.fs-bait-wrap {
+  animation: fs-bait-bob 2s ease-in-out infinite;
+  filter: drop-shadow(0 4px 10px rgba(0,0,0,0.3));
 }
-.fs-bobber-bot {
-  width: 12px; height: 12px; border-radius: 50%;
-  background: linear-gradient(145deg, #ef4444 50%, #fff 50%);
-  box-shadow: 0 1px 6px rgba(0,0,0,0.4);
+.fs-bait-wrap.nibble {
+  animation: fs-bait-tug 0.22s ease-in-out infinite;
 }
-.fs-bobber       { animation: fs-bob  1.8s ease-in-out infinite; }
-.fs-bobber.nibble{ animation: fs-dip  0.2s ease-in-out infinite; }
-@keyframes fs-bob { 0%,100% { top: 44%; } 50% { top: 46%; } }
-@keyframes fs-dip { 0%,100% { top: 44%; } 50% { top: 52%; } }
+.fs-bait-sprite {
+  width: 48px; height: 48px;
+}
+@keyframes fs-bait-bob {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  30%      { transform: translateY(5px) rotate(3deg); }
+  70%      { transform: translateY(-3px) rotate(-2deg); }
+}
+@keyframes fs-bait-tug {
+  0%   { transform: translateY(0) rotate(0deg) scale(1); }
+  30%  { transform: translateY(10px) rotate(12deg) scale(0.92); }
+  60%  { transform: translateY(3px) rotate(-8deg) scale(1.04); }
+  100% { transform: translateY(0) rotate(0deg) scale(1); }
+}
 
-/* Splash at the "water surface" */
-.fs-splash {
+.fs-bait-shadow {
+  width: 28px; height: 6px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.15);
+  margin-top: 6px;
+  filter: blur(2px);
+  animation: fs-shadow-bob 2s ease-in-out infinite;
+}
+@keyframes fs-shadow-bob {
+  0%, 100% { transform: scaleX(1); opacity: 0.4; }
+  30%      { transform: scaleX(0.8); opacity: 0.5; }
+  70%      { transform: scaleX(1.1); opacity: 0.3; }
+}
+
+/* Ripples around bait */
+.fs-ripples {
   position: absolute;
-  left: 50%; top: 44%;
+  left: 50%; top: 50%;
   transform: translate(-50%, -50%);
   pointer-events: none;
 }
-.fs-ring {
+.fs-ripple {
   position: absolute;
+  left: 50%; top: 50%;
+  width: 8px; height: 3px;
   border-radius: 50%;
-  border: 2px solid rgba(120,220,255,0.8);
-  transform: translate(-50%, -30%);
-  animation: fs-ring-expand 0.7s ease-out forwards;
-}
-.fs-ring.r1 { width: 10px; height: 4px; }
-.fs-ring.r2 { width: 10px; height: 4px; animation-delay: 0.1s; }
-.fs-ring.r3 { width: 10px; height: 4px; animation-delay: 0.2s; }
-@keyframes fs-ring-expand {
-  0%   { width: 10px;  height: 4px;  opacity: 0.9; }
-  100% { width: 110px; height: 44px; opacity: 0; }
-}
-.fs-catch-fish {
-  position: absolute;
-  left: 0; top: 0;
+  border: 1.5px solid rgba(255,255,255,0.3);
   transform: translate(-50%, -50%);
-  animation: fs-fish-pop 0.6s cubic-bezier(0.12,0.85,0.22,1) forwards;
+  animation: fs-ripple-out 2.5s ease-out infinite;
 }
-@keyframes fs-fish-pop {
-  0%   { transform: translate(-50%, 10px) scale(0.4); opacity: 0; }
-  50%  { transform: translate(-50%, -80px) scale(1.2) rotate(-15deg); opacity: 1; }
-  100% { transform: translate(-50%, -65px) scale(1) rotate(-10deg); opacity: 1; }
+.fs-ripple.r2 { animation-delay: 1.2s; }
+.fs-ripples.nibble .fs-ripple {
+  border-color: rgba(255,220,100,0.5);
+  animation: fs-ripple-out 0.6s ease-out infinite;
+}
+.fs-ripples.nibble .fs-ripple.r2 { animation-delay: 0.3s; }
+@keyframes fs-ripple-out {
+  0%   { width: 8px;  height: 3px;  opacity: 0.7; }
+  100% { width: 80px; height: 30px; opacity: 0; }
 }
 
-/* Status pill */
-.fs-status {
+/* Status labels */
+.fs-label {
   position: absolute;
-  bottom: 10%; left: 50%; transform: translateX(-50%);
-  padding: 5px 14px; border-radius: 20px;
-  background: rgba(255,255,255,0.18);
-  backdrop-filter: blur(6px);
-  border: 1px solid rgba(255,255,255,0.25);
-  font-size: 12px; font-weight: 700;
-  color: #fff; white-space: nowrap;
+  bottom: 28px; left: 50%;
+  transform: translateX(-50%);
+  padding: 6px 18px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.12);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.15);
+  font-size: 13px; font-weight: 700;
+  color: rgba(255,255,255,0.8);
+  white-space: nowrap;
   text-shadow: 0 1px 4px rgba(0,0,0,0.3);
-  animation: fs-pill-in 0.2s ease;
+  animation: fs-label-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  letter-spacing: 0.3px;
 }
-.fs-status.strike {
-  background: rgba(255,210,0,0.25);
-  border-color: rgba(255,210,0,0.5);
-  color: #ffd700; font-size: 14px;
-  animation: fs-pill-in 0.2s ease, fs-strike-pulse 0.2s ease-in-out 3;
+.fs-label.nibble {
+  background: rgba(255,200,50,0.18);
+  border-color: rgba(255,200,50,0.35);
+  color: #ffd700;
+  font-size: 14px;
+  animation: fs-label-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), fs-label-pulse 0.7s ease-in-out infinite;
 }
-@keyframes fs-pill-in     { from { opacity: 0; transform: translateX(-50%) translateY(4px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
-@keyframes fs-strike-pulse { 50% { transform: translateX(-50%) scale(1.08); } }
+@keyframes fs-label-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(6px) scale(0.9); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+}
+@keyframes fs-label-pulse {
+  0%, 100% { transform: translateX(-50%) scale(1); }
+  50%      { transform: translateX(-50%) scale(1.06); }
+}
+
+/* Catch reveal */
+.fs-reveal {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 6px;
+}
+.fs-reveal-burst {
+  position: absolute; inset: 0;
+  background: radial-gradient(circle at 50% 45%, var(--rarity-glow), transparent 60%);
+  animation: fs-burst-in 0.5s ease-out;
+}
+@keyframes fs-burst-in {
+  0%   { opacity: 0; transform: scale(0.3); }
+  50%  { opacity: 1; transform: scale(1.2); }
+  100% { opacity: 0.7; transform: scale(1); }
+}
+.fs-reveal-fish {
+  position: relative;
+  z-index: 2;
+  animation: fs-reveal-pop 0.6s cubic-bezier(0.16, 1.11, 0.36, 1.1);
+  filter: drop-shadow(0 4px 16px rgba(0,0,0,0.4))
+          drop-shadow(0 0 20px var(--rarity-glow));
+}
+@keyframes fs-reveal-pop {
+  0%   { transform: scale(0.2) rotate(15deg) translateY(20px); opacity: 0; }
+  50%  { transform: scale(1.25) rotate(-8deg) translateY(-10px); opacity: 1; }
+  75%  { transform: scale(0.95) rotate(3deg) translateY(0); }
+  100% { transform: scale(1) rotate(0deg) translateY(0); opacity: 1; }
+}
+.fs-reveal-name {
+  position: relative; z-index: 2;
+  font-size: 18px; font-weight: 900;
+  color: #fff;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  animation: fs-text-up 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) 0.15s both;
+  letter-spacing: 0.3px;
+}
+.fs-reveal-rarity {
+  position: relative; z-index: 2;
+  font-size: 16px;
+  letter-spacing: 3px;
+  animation: fs-text-up 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) 0.25s both;
+}
+@keyframes fs-text-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Sparkles (shared) */
+.fs-sparkle {
+  position: absolute;
+  width: var(--size);
+  height: var(--size);
+  background: white;
+  clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+  animation: fs-sparkle-pop 0.7s ease-out forwards;
+  filter: drop-shadow(0 0 3px rgba(255,255,255,0.8));
+  z-index: 3;
+}
+@keyframes fs-sparkle-pop {
+  0%   { transform: scale(0) rotate(0deg); opacity: 0; }
+  40%  { transform: scale(1.4) rotate(100deg); opacity: 1; }
+  100% { transform: scale(0) rotate(200deg); opacity: 0; }
+}
 
 /* ── Bait inventory bottom sheet ─────────────────────────────────────────────── */
 .bait-sheet-backdrop {
@@ -215,7 +335,7 @@ html, body, #root {
 }
 
 .header-brand  { display: flex; align-items: center; gap: 10px; }
-.header-logo   { font-size: 28px; }
+.header-logo   { width: 38px; height: 38px; }
 .header-title  { font-size: 16px; font-weight: 800; color: #0369a1; letter-spacing: -0.3px; }
 .header-sub    { font-size: 11px; color: #7dd3fc; font-weight: 600; margin-top: 1px; }
 
@@ -375,7 +495,7 @@ html, body, #root {
   50%       { transform: scale(1.05); }
 }
 
-.fish-btn-icon  { font-size: 32px; line-height: 1; }
+.fish-btn-icon  { width: 42px; height: 42px; }
 .fish-btn-label { font-size: 13px; font-weight: 900; letter-spacing: 0.5px; text-transform: uppercase; }
 
 /* ── Aquarium tank ───────────────────────────────────────────────────────────── */
@@ -718,3 +838,15 @@ html, body, #root {
   flex-shrink: 0; white-space: nowrap;
   border: 1px solid rgba(34,197,94,0.25);
 }
+
+/* ── Rod & bait item art (pixel sprites from /items) ───────────────────────────── */
+.item-art {
+  image-rendering: pixelated;
+  object-fit: contain;
+  display: block;
+}
+.bait-option-emoji { width: 40px; height: 40px; }
+.bag-row-icon      { width: 38px; height: 38px; }
+.market-row-emoji  { width: 40px; height: 40px; }
+.bait-chip-art     { width: 22px; height: 22px; }
+.fs-rod-art        { width: 72px; height: 72px; image-rendering: pixelated; }
