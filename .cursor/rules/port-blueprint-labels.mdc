@@ -1,0 +1,10 @@
+---
+description: Label new Port blueprints for Hackathon cleanup
+alwaysApply: true
+---
+
+# Port Blueprint Labels
+
+When creating any new blueprint in Port for this project, label it with `Hackathon2026`.
+
+This label is required so hackathon-created blueprints can be found and cleaned up later.

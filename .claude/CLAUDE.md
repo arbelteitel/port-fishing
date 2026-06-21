@@ -158,6 +158,8 @@ Avoid making any single factor decisive. Fast PRs, old files, and rare services 
 ## Agent Guidance
 
 - Preserve this project framing unless the user explicitly changes it.
+- Default model preference is Sonnet 4.6.
+- When working in Plan mode, prefer Opus 4.6 for deeper product and architecture reasoning.
 - When making product or technical choices, bias toward the Chrome extension and Port.io integration first.
 - Do not treat the Lovable site as the primary app until more details are provided.
 - Keep language consistent: use "Fishing Tokens" and "baits" as the same concept unless the user later separates them.
