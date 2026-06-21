@@ -1,11 +1,13 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { FISH as REGISTRY_FISH } from "../lib/fish-registry.js";
 import "./sidepanel.css";
 
 const RARITY_COLORS = { common: "#94a3b8", uncommon: "#22c55e", rare: "#38bdf8", legendary: "#f59e0b" };
 const RARITY_GLOW   = { common: "rgba(148,163,184,0.5)", uncommon: "rgba(34,197,94,0.6)", rare: "rgba(56,189,248,0.6)", legendary: "rgba(245,158,11,0.7)" };
 const RARITY_RANK   = { legendary: 4, rare: 3, uncommon: 2, common: 1 };
 const SELL_PRICES   = { common: 5, uncommon: 15, rare: 40, legendary: 100 };
-const sizeToSpeed   = (size) => 28 / size;
+const sizeToSpeed   = (size) => 22 / size;
+const sizeToPx      = (size) => Math.round(size * 2);
 
 // ── Bait system ───────────────────────────────────────────────────────────────
 
@@ -54,34 +56,21 @@ const MOCK_BAIT_INVENTORY = [
   { ...BAIT_TYPES[3], count: 0 },
 ];
 
-const ALL_FISH = [
-  { id: "coelacanth", name: "Coelacanth",  emoji: "🦖", rarity: "legendary", size: 58, description: "Ancient platform fish. Survives every breaking change." },
-  { id: "narwhal",    name: "Narwhal",     emoji: "🦄", rarity: "legendary", size: 54, description: "Pierces through stuck queue backlogs." },
-  { id: "whale",      name: "Blue Whale",  emoji: "🐋", rarity: "legendary", size: 62, description: "Swallows entire data lake migrations whole." },
-  { id: "starfish",   name: "Starfish",    emoji: "⭐", rarity: "legendary", size: 50, description: "A perfect UX moment." },
-  { id: "anglerfish", name: "Anglerfish",  emoji: "🔦", rarity: "rare",      size: 38, description: "Found in the deep query optimizer." },
-  { id: "manta_ray",  name: "Manta Ray",   emoji: "🦈", rarity: "rare",      size: 42, description: "Glides through complex workflows." },
-  { id: "squid",      name: "Giant Squid", emoji: "🦑", rarity: "rare",      size: 36, description: "Lurks in the lakehouse depths." },
-  { id: "seahorse",   name: "Seahorse",    emoji: "🐴", rarity: "rare",      size: 34, description: "Rare near polished feature releases." },
-  { id: "octopus",    name: "Octopus",     emoji: "🐙", rarity: "uncommon",  size: 28, description: "Tentacles reach every integration." },
-  { id: "eel",        name: "Electric Eel",emoji: "⚡", rarity: "uncommon",  size: 24, description: "Powers the scheduler." },
-  { id: "pufferfish", name: "Pufferfish",  emoji: "🐡", rarity: "uncommon",  size: 26, description: "Inflates on re-renders." },
-  { id: "clownfish",  name: "Clownfish",   emoji: "🐠", rarity: "common",    size: 17, description: "Lives in colorful UI components." },
-  { id: "bass",       name: "Sea Bass",    emoji: "🐟", rarity: "common",    size: 19, description: "Sturdy and deeply indexed." },
-  { id: "salmon",     name: "Salmon",      emoji: "🎏", rarity: "common",    size: 20, description: "Runs upstream through pipelines." },
-];
+const ALL_FISH = REGISTRY_FISH;
 
 const MOCK_CATCHES = [
-  { ...ALL_FISH.find(f => f.id === "coelacanth") },
-  { ...ALL_FISH.find(f => f.id === "narwhal") },
   { ...ALL_FISH.find(f => f.id === "anglerfish") },
+  { ...ALL_FISH.find(f => f.id === "axolotl") },
+  { ...ALL_FISH.find(f => f.id === "sunfish") },
   { ...ALL_FISH.find(f => f.id === "octopus") },
   { ...ALL_FISH.find(f => f.id === "clownfish") },
+  { ...ALL_FISH.find(f => f.id === "koi") },
+  { ...ALL_FISH.find(f => f.id === "pirahna") },
 ];
 
 // ── Physics aquarium ──────────────────────────────────────────────────────────
 
-function Aquarium({ fish, decorations, onMoveDecoration }) {
+function Aquarium({ fish, decorations, onMoveDecoration, fishingActive, fishingBoost, onFishingDone }) {
   const containerRef = useRef(null);
   const elemsRef     = useRef([]);
   const stateRef     = useRef([]);
@@ -217,6 +206,7 @@ function Aquarium({ fish, decorations, onMoveDecoration }) {
 
   return (
     <div className="tank" ref={containerRef} onClick={handleClick}>
+      {fishingActive && <FishingScene boost={fishingBoost} onDone={onFishingDone} />}
       <div className="water-shimmer" />
       <div className="bubbles">
         {[...Array(10)].map((_, i) => (
@@ -224,17 +214,19 @@ function Aquarium({ fish, decorations, onMoveDecoration }) {
         ))}
       </div>
 
-      {fish.map((f, i) => (
-        <div
-          key={f.id}
-          ref={el => elemsRef.current[i] = el}
-          className="tank-fish"
-          style={{ fontSize: `${f.size}px`, filter: `drop-shadow(0 0 10px ${RARITY_GLOW[f.rarity]})` }}
-          title={`${f.name} · ${f.rarity}`}
-        >
-          {f.emoji}
-        </div>
-      ))}
+      {fish.map((f, i) => {
+        const px = sizeToPx(f.size);
+        return (
+          <div
+            key={f.id}
+            ref={el => elemsRef.current[i] = el}
+            className="tank-fish"
+            title={`${f.name} · ${f.rarity}`}
+          >
+            <img src={f.img} alt={f.name} style={{ width: px, height: px }} className="fish-sprite" />
+          </div>
+        );
+      })}
 
       <div className="tank-seabed">
         <div className="seaweed" style={{ left: "8%",  height: 30, animationDelay: "0s" }} />
@@ -266,76 +258,66 @@ function FishingScene({ boost = 0, onDone }) {
   useEffect(() => {
     const w = getRarityWeights(boost);
     const total = Object.values(w).reduce((a, b) => a + b, 0);
-    let roll = Math.random() * total;
-    let fish = ALL_FISH[ALL_FISH.length - 1];
-    for (const f of ALL_FISH) { roll -= w[f.rarity]; if (roll <= 0) { fish = f; break; } }
+    let rarityRoll = Math.random() * total;
+    let chosenRarity = "common";
+    for (const [rarity, weight] of Object.entries(w)) {
+      rarityRoll -= weight;
+      if (rarityRoll <= 0) { chosenRarity = rarity; break; }
+    }
+    const pool = ALL_FISH.filter(f => f.rarity === chosenRarity);
+    const fish = pool[Math.floor(Math.random() * pool.length)] ?? ALL_FISH[0];
     setSplashFish(fish);
 
-    const waitMs = 1400 + Math.random() * 1800;
-    const t1 = setTimeout(() => setPhase('wait'),   620);
-    const t2 = setTimeout(() => setPhase('nibble'), 620 + waitMs);
-    const t3 = setTimeout(() => setPhase('strike'), 620 + waitMs + 560);
-    const t4 = setTimeout(() => setPhase('splash'), 620 + waitMs + 960);
-    const t5 = setTimeout(() => onDone(fish),       620 + waitMs + 960 + 1300);
+    const waitMs = 600 + Math.random() * 800;
+    const t1 = setTimeout(() => setPhase('wait'),   250);
+    const t2 = setTimeout(() => setPhase('nibble'), 250 + waitMs);
+    const t3 = setTimeout(() => setPhase('strike'), 250 + waitMs + 280);
+    const t4 = setTimeout(() => setPhase('splash'), 250 + waitMs + 500);
+    const t5 = setTimeout(() => onDone(fish),       250 + waitMs + 500 + 650);
     return () => [t1, t2, t3, t4, t5].forEach(clearTimeout);
   }, []);
 
-  const phaseLabel = {
-    cast:   '🎣 Casting...',
-    wait:   '⏳ Waiting...',
-    nibble: "😮 Something's biting...",
+  const statusLabel = {
+    cast:   null,
+    wait:   'Waiting...',
+    nibble: "Something's biting!",
     strike: '⚡ STRIKE!',
-    splash: '',
+    splash: null,
   }[phase];
 
-  const showLine = phase !== 'cast';
+  const isStrike = phase === 'strike';
 
   return (
     <div className="fishing-scene">
-      <div className="scene-sky">
-        <span className="scene-moon">🌙</span>
-        {[{l:10,t:9},{l:28,t:16},{l:52,t:7},{l:70,t:18},{l:20,t:28},{l:44,t:23}].map((s, i) => (
-          <span key={i} className="scene-star" style={{left:`${s.l}%`,top:`${s.t}%`,animationDelay:`${i*0.38}s`}}>✦</span>
-        ))}
-      </div>
+      {/* Rod pinned to top-right */}
+      <div className={`fs-rod ${phase}`}>🎣</div>
 
-      <div className={`scene-water ${phase === 'strike' || phase === 'splash' ? 'choppy' : ''}`}>
-        <div className="scene-wave w1" />
-        <div className="scene-wave w2" />
-      </div>
-
-      <div className="scene-moon-reflect" />
-      <div className={`scene-rod ${phase}`}>🎣</div>
-
-      {showLine && (
-        <svg className="scene-svg" xmlns="http://www.w3.org/2000/svg">
-          <line className={`svg-fishing-line ${phase}`} x1="75%" y1="20%" x2="50%" y2="57%" />
+      {/* Line from rod tip to bobber */}
+      {phase !== 'cast' && (
+        <svg className="fs-svg">
+          <line className={`fs-line ${isStrike ? 'taut' : ''}`} x1="82%" y1="8%" x2="50%" y2="44%" />
         </svg>
       )}
 
+      {/* Bobber */}
       {(phase === 'wait' || phase === 'nibble') && (
-        <div className={`scene-bobber ${phase}`}>
-          <div className="bobber-stick" />
-          <div className="bobber-ball" />
+        <div className={`fs-bobber ${phase === 'nibble' ? 'nibble' : ''}`}>
+          <div className="fs-bobber-top" />
+          <div className="fs-bobber-bot" />
         </div>
       )}
 
+      {/* Splash + fish reveal */}
       {phase === 'splash' && splashFish && (
-        <div className="scene-splash">
-          <div className="splash-ring r1" />
-          <div className="splash-ring r2" />
-          <div className="splash-ring r3" />
-          <div className="splash-drops">
-            {['-80deg','-52deg','-24deg','4deg','32deg','60deg','88deg'].map((a, i) => (
-              <span key={i} className="splash-drop" style={{'--angle': a, animationDelay: `${i * 0.035}s`}}>💧</span>
-            ))}
-          </div>
-          <div className="splash-fish">{splashFish.emoji}</div>
+        <div className="fs-splash">
+          <div className="fs-ring r1" /><div className="fs-ring r2" /><div className="fs-ring r3" />
+          <img src={splashFish.img} alt={splashFish.name} className="fish-sprite fs-catch-fish" style={{ width: sizeToPx(splashFish.size), height: sizeToPx(splashFish.size) }} />
         </div>
       )}
 
-      {phaseLabel && (
-        <div className={`scene-label ${phase === 'strike' ? 'label-strike' : ''}`}>{phaseLabel}</div>
+      {/* Status pill */}
+      {statusLabel && (
+        <div className={`fs-status ${isStrike ? 'strike' : ''}`}>{statusLabel}</div>
       )}
     </div>
   );
@@ -388,7 +370,9 @@ function CatchReveal({ fish, onDismiss }) {
   return (
     <div className="catch-overlay" onClick={onDismiss}>
       <div className="catch-card" style={{ "--accent": RARITY_COLORS[fish.rarity], "--glow": RARITY_GLOW[fish.rarity] }} onClick={e => e.stopPropagation()}>
-        <div className="catch-fish-emoji">{fish.emoji}</div>
+        <div className="catch-fish-emoji">
+          <img src={fish.img} alt={fish.name} className="fish-sprite" style={{ width: sizeToPx(fish.size), height: sizeToPx(fish.size) }} />
+        </div>
         {fish.isNew && <div className="catch-new-badge">✨ NEW CATCH!</div>}
         <div className="catch-rarity-stars" style={{ color: RARITY_COLORS[fish.rarity] }}>{"★".repeat(RARITY_RANK[fish.rarity])}{"☆".repeat(4 - RARITY_RANK[fish.rarity])}</div>
         <div className="catch-fish-name">{fish.name}</div>
@@ -527,7 +511,7 @@ function Market({ catches, inventory, goldCoins, ownedRodIds, ownedDecorations, 
               ? <div className="market-empty">No fish to sell. Go fishing first!</div>
               : catches.map(fish => (
                 <div key={fish.id} className="market-row">
-                  <span className="market-row-emoji">{fish.emoji}</span>
+                  <img src={fish.img} alt={fish.name} className="fish-sprite market-fish-icon" />
                   <div className="market-row-info">
                     <div className="market-row-name">{fish.name}</div>
                     <div className="market-row-rarity" style={{ color: RARITY_COLORS[fish.rarity] }}>{fish.rarity}</div>
@@ -713,7 +697,6 @@ export default function SidePanel() {
 
   return (
     <div className="panel">
-      {fishing     && <FishingScene boost={totalBoost} onDone={onSceneDone} />}
       {catchResult && <CatchReveal fish={catchResult} onDismiss={() => setCatchResult(null)} />}
       {showMarket  && (
         <Market
@@ -787,7 +770,14 @@ export default function SidePanel() {
         </button>
       </div>
 
-      <Aquarium fish={top10} decorations={ownedDecorations} onMoveDecoration={moveDecoration} />
+      <Aquarium
+        fish={top10}
+        decorations={ownedDecorations}
+        onMoveDecoration={moveDecoration}
+        fishingActive={fishing}
+        fishingBoost={totalBoost}
+        onFishingDone={onSceneDone}
+      />
     </div>
   );
 }
