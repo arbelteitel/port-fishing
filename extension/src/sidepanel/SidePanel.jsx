@@ -6,7 +6,7 @@ import "./sidepanel.css";
 const RARITY_COLORS = { common: "#94a3b8", uncommon: "#22c55e", rare: "#38bdf8", legendary: "#f59e0b" };
 const RARITY_GLOW   = { common: "rgba(148,163,184,0.5)", uncommon: "rgba(34,197,94,0.6)", rare: "rgba(56,189,248,0.6)", legendary: "rgba(245,158,11,0.7)" };
 const RARITY_RANK   = { legendary: 4, rare: 3, uncommon: 2, common: 1 };
-const SELL_PRICES   = { common: 2, uncommon: 7, rare: 20, legendary: 60 };
+const SELL_PRICES   = { common: 15, uncommon: 50, rare: 175, legendary: 600 };
 const sizeToSpeed   = (size) => 22 / size;
 const sizeToPx      = (size) => Math.min(48, Math.round(size * 1.4));
 
@@ -20,14 +20,14 @@ const comboImg = (rodId, baitId) => `/items/${rodId}_rod_bait_${baitId}.png`;
 // ids match the bait_<id>.png asset names so combo art can be resolved.
 
 const BAIT_TYPES = [
-  { id: "basic",        name: "Doughball Bait", img: baitImg("basic"),        rarity: "common",    boost: 0,    price: 3,   description: "Gets the job done. Barely." },
-  { id: "green",        name: "Algae Bait",     img: baitImg("green"),        rarity: "common",    boost: 0.12, price: 9,   description: "Fresh and grassy. Fish nibble politely." },
-  { id: "red",          name: "Roe Bait",       img: baitImg("red"),          rarity: "uncommon",  boost: 0.22, price: 16,  description: "Bright and juicy. Hard to ignore." },
-  { id: "black",        name: "Boilie Bait",    img: baitImg("black"),        rarity: "uncommon",  boost: 0.32, price: 26,  description: "Dense and dark. Sinks to the good spots." },
-  { id: "fish",         name: "Cut Bait",       img: baitImg("fish"),         rarity: "rare",      boost: 0.42, price: 42,  description: "A chunk of the real thing. Predators love it." },
-  { id: "fish_black",   name: "Chum Bait",      img: baitImg("fish_black"),   rarity: "rare",      boost: 0.52, price: 62,  description: "A trail of temptation. Draws a crowd." },
-  { id: "yellow_point", name: "Amber Bait",     img: baitImg("yellow_point"), rarity: "legendary", boost: 0.63, price: 88,  description: "Glints like treasure. Rare fish circle in." },
-  { id: "golden",       name: "Golden Bait",    img: baitImg("golden"),       rarity: "legendary", boost: 0.75, price: 120, description: "Dark arts. Almost guarantees something extraordinary." },
+  { id: "basic",        name: "Doughball Bait", img: baitImg("basic"),        rarity: "common",    boost: 0,    price: 25,  description: "Gets the job done. Barely." },
+  { id: "green",        name: "Algae Bait",     img: baitImg("green"),        rarity: "common",    boost: 0.12, price: 75,  description: "Fresh and grassy. Fish nibble politely." },
+  { id: "red",          name: "Roe Bait",       img: baitImg("red"),          rarity: "uncommon",  boost: 0.22, price: 150, description: "Bright and juicy. Hard to ignore." },
+  { id: "black",        name: "Boilie Bait",    img: baitImg("black"),        rarity: "uncommon",  boost: 0.32, price: 250, description: "Dense and dark. Sinks to the good spots." },
+  { id: "fish",         name: "Cut Bait",       img: baitImg("fish"),         rarity: "rare",      boost: 0.42, price: 400, description: "A chunk of the real thing. Predators love it." },
+  { id: "fish_black",   name: "Chum Bait",      img: baitImg("fish_black"),   rarity: "rare",      boost: 0.52, price: 600, description: "A trail of temptation. Draws a crowd." },
+  { id: "yellow_point", name: "Amber Bait",     img: baitImg("yellow_point"), rarity: "legendary", boost: 0.63, price: 850, description: "Glints like treasure. Rare fish circle in." },
+  { id: "golden",       name: "Golden Bait",    img: baitImg("golden"),       rarity: "legendary", boost: 0.75, price: 1200, description: "Dark arts. Almost guarantees something extraordinary." },
 ];
 
 // ── Rod system ────────────────────────────────────────────────────────────────
@@ -35,19 +35,19 @@ const BAIT_TYPES = [
 
 const ROD_TYPES = [
   { id: "basic", name: "Basic Rod",  img: rodImg("basic"), price: 0,    rodBoost: 0,    description: "A trusty rod. Gets the job done." },
-  { id: "black", name: "Carbon Rod", img: rodImg("black"), price: 250,  rodBoost: 0.12, description: "Stiff and sensitive. Improved odds." },
-  { id: "blue",  name: "Tidal Rod",  img: rodImg("blue"),  price: 750,  rodBoost: 0.22, description: "Tuned for the deep. Serious power." },
-  { id: "pink",  name: "Coral Rod",  img: rodImg("pink"),  price: 2000, rodBoost: 0.35, description: "Forged from rare catches. The finest cast." },
+  { id: "black", name: "Carbon Rod", img: rodImg("black"), price: 2500,  rodBoost: 0.12, description: "Stiff and sensitive. Improved odds." },
+  { id: "blue",  name: "Tidal Rod",  img: rodImg("blue"),  price: 8000,  rodBoost: 0.22, description: "Tuned for the deep. Serious power." },
+  { id: "pink",  name: "Coral Rod",  img: rodImg("pink"),  price: 30000, rodBoost: 0.35, description: "Forged from rare catches. The finest cast." },
 ];
 
 // ── Fish helpers ──────────────────────────────────────────────────────────────
 
 function getRarityWeights(boost = 0) {
   return {
-    common:    Math.max(4,  60 - boost * 48),
-    uncommon:  Math.max(4,  25 - boost * 12),
-    rare:      12 + boost * 28,
-    legendary:  3 + boost * 32,
+    common:    Math.max(4,  70 - boost * 55),
+    uncommon:  22 + boost * 8,
+    rare:       6 + boost * 24,
+    legendary:  1 + boost * 3,
   };
 }
 
@@ -650,7 +650,7 @@ function Market({ catches, inventory, goldCoins, ownedRodIds, ownedDecorations, 
             );
           })}
 
-          {tab === "decos" && DECORATION_CATALOG.map(dec => {
+          {tab === "decos" && [...DECORATION_CATALOG].sort((a, b) => a.price - b.price).map(dec => {
             const owned = ownedDecorations.some(d => d.id === dec.id);
             const canAfford = goldCoins >= dec.price;
             return (
@@ -732,7 +732,7 @@ export default function SidePanel() {
   const castIdRef = useRef(0);
 
   // Economy & gear
-  const [goldCoins, setGoldCoins]         = useState(25);
+  const [goldCoins, setGoldCoins]         = useState(150);
   const [equippedRod, setEquippedRod]     = useState(ROD_TYPES[0]);
   const [ownedRodIds, setOwnedRodIds]     = useState(() => new Set(["basic"]));
   const [ownedDecorations, setOwnedDecorations] = useState([]);
@@ -749,6 +749,25 @@ export default function SidePanel() {
   // History
   const [showHistory, setShowHistory]       = useState(false);
   const [historyClosing, setHistoryClosing] = useState(false);
+
+  // isDark: true = dark mode, false = light mode. Initialized from system preference, persisted manually.
+  const systemDark = window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false;
+  const [isDark, setIsDark] = useState(systemDark);
+
+  useEffect(() => {
+    chrome.storage.local.get(['themeOverride'], ({ themeOverride: saved }) => {
+      if (saved === 'dark') setIsDark(true);
+      else if (saved === 'light') setIsDark(false);
+    });
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+    chrome.storage.local.set({ themeOverride: isDark ? 'dark' : 'light' });
+  }, [isDark]);
+
+  const themeIcon = isDark ? '🌑' : '💡';
+  const themeTitle = isDark ? 'Dark mode — click for light' : 'Light mode — click for dark';
 
   const baitCount = inventory.reduce((a, b) => a + b.count, 0);
   const caughtIds = new Set(catches.map(f => f.id));
@@ -834,7 +853,6 @@ export default function SidePanel() {
       return;
     }
 
-    if (activeCasts.length >= 4) return;
 
     const usedBait = currentInv.find(b => b.id === selectedBait.id);
     const newInv = currentInv.map(b => b.id === usedBait.id ? { ...b, count: b.count - 1 } : b);
@@ -977,6 +995,7 @@ export default function SidePanel() {
             <span className="gold-icon">🪙</span>
             <span className="gold-num">{goldCoins}</span>
           </div>
+          <button className="icon-btn" onClick={() => setIsDark(d => !d)} title={themeTitle}>{themeIcon}</button>
           <button className="icon-btn" onClick={() => chrome.runtime.sendMessage({ type: "OPEN_AQUARIUM_WINDOW" })} title="Full-screen aquarium">⛶</button>
           <button className="icon-btn" onClick={() => setShowHistory(true)} title="Catch history">📋</button>
           <button className="icon-btn" onClick={() => setShowBag(true)} title="Loadout">🎒</button>
@@ -999,7 +1018,7 @@ export default function SidePanel() {
         <button
           className={`fish-btn ${baitCount === 0 || selectedBaitCount === 0 ? "empty" : ""}`}
           onClick={goFish}
-          disabled={baitCount === 0 || activeCasts.length >= 4}
+          disabled={baitCount === 0 || selectedBaitCount === 0}
         >
           <img className="fish-btn-icon item-art" src={comboImg(equippedRod.id, activeBait.id)} alt="" />
           <span className="fish-btn-label">

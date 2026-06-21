@@ -104,10 +104,10 @@ export const FISH = [
 ];
 
 export const RARITY_WEIGHTS = {
-  common:    60,
-  uncommon:  25,
-  rare:      12,
-  legendary:  3,
+  common:    70,
+  uncommon:  22,
+  rare:       6,
+  legendary:  1,
 };
 
 export function getFishByPool(poolKey) {

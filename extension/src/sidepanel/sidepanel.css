@@ -41,6 +41,8 @@ html, body, #root {
   --back-hover: rgba(0,0,0,0.08);
   --icon-btn-bg: rgba(255,255,255,0.6);
   --icon-btn-hover: rgba(255,255,255,0.85);
+  --icon-btn-color: #374151;
+  --tank-shade: linear-gradient(rgba(120,200,255,0.06), rgba(120,200,255,0.06));
   --inv-total-color: #0369a1;
   --inv-total-label: #64748b;
   --history-border: rgba(0,0,0,0.07);
@@ -52,7 +54,7 @@ html, body, #root {
 /* ── Dark tokens — system preference ───────────────────────────────────── */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --panel-bg: linear-gradient(160deg, #0c1a2e 0%, #0a1628 40%, #091220 100%);
+    --panel-bg: linear-gradient(160deg, #0e2040 0%, #0c1a35 40%, #0a182e 100%);
     --header-bg: rgba(0,0,0,0.4);
     --header-border: rgba(255,255,255,0.08);
     --header-title: #7dd3fc;
@@ -86,6 +88,8 @@ html, body, #root {
     --back-hover: rgba(255,255,255,0.1);
     --icon-btn-bg: rgba(255,255,255,0.1);
     --icon-btn-hover: rgba(255,255,255,0.18);
+    --icon-btn-color: #e2e8f0;
+    --tank-shade: linear-gradient(rgba(0,10,35,0.52), rgba(0,10,35,0.52));
     --inv-total-color: #7dd3fc;
     --inv-total-label: #94a3b8;
     --history-border: rgba(255,255,255,0.06);
@@ -97,7 +101,7 @@ html, body, #root {
 
 /* ── Dark tokens — manual override ─────────────────────────────────────── */
 [data-theme="dark"] {
-  --panel-bg: linear-gradient(160deg, #0c1a2e 0%, #0a1628 40%, #091220 100%);
+  --panel-bg: linear-gradient(160deg, #0e2040 0%, #0c1a35 40%, #0a182e 100%);
   --header-bg: rgba(0,0,0,0.4);
   --header-border: rgba(255,255,255,0.08);
   --header-title: #7dd3fc;
@@ -131,6 +135,8 @@ html, body, #root {
   --back-hover: rgba(255,255,255,0.1);
   --icon-btn-bg: rgba(255,255,255,0.1);
   --icon-btn-hover: rgba(255,255,255,0.18);
+  --icon-btn-color: #e2e8f0;
+  --tank-shade: rgba(0,10,35,0.42);
   --inv-total-color: #7dd3fc;
   --inv-total-label: #94a3b8;
   --history-border: rgba(255,255,255,0.06);
@@ -391,23 +397,23 @@ html, body, #root {
 .bait-option.empty    { opacity: 0.38; cursor: default; }
 .bait-option-emoji { font-size: 30px; flex-shrink: 0; }
 .bait-option-info  { flex: 1; min-width: 0; }
-.bait-option-name  { font-size: 14px; font-weight: 700; color: #1e293b; }
-.bait-option-desc  { font-size: 11px; color: #64748b; margin-top: 1px; }
+.bait-option-name  { font-size: 14px; font-weight: 700; color: var(--option-name); }
+.bait-option-desc  { font-size: 11px; color: var(--option-desc); margin-top: 1px; }
 .bait-odds-row     { display: flex; gap: 3px; margin-top: 5px; }
 .odds-chip {
   font-size: 10px; font-weight: 700;
   padding: 2px 5px; border-radius: 4px;
 }
-.odds-chip.common    { background: #f1f5f9; color: #64748b; }
+.odds-chip.common    { background: var(--chip-common-bg); color: var(--chip-common-color); }
 .odds-chip.uncommon  { background: #dcfce7; color: #15803d; }
 .odds-chip.rare      { background: #dbeafe; color: #1d4ed8; }
 .odds-chip.legendary { background: #fef3c7; color: #b45309; }
 .bait-option-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
 .bait-option-count {
-  font-size: 12px; font-weight: 700; color: #64748b;
-  background: #f1f5f9; border-radius: 10px; padding: 2px 8px;
+  font-size: 12px; font-weight: 700; color: var(--option-cnt-color);
+  background: var(--option-cnt-bg); border-radius: 10px; padding: 2px 8px;
 }
-.bait-option.selected .bait-option-count { background: #dbeafe; color: #1d4ed8; }
+.bait-option.selected .bait-option-count { background: var(--option-cnt-sel-bg); color: var(--option-cnt-sel-color); }
 .bait-option-check { font-size: 16px; color: #0ea5e9; }
 .bait-chip { cursor: pointer; transition: transform 0.1s ease, box-shadow 0.1s ease; }
 .bait-chip:hover { transform: scale(1.05); }
@@ -634,19 +640,27 @@ html, body, #root {
 .tank {
   position: absolute; inset: 0;
   overflow: hidden;
-  background-color: #0b6ea3;
-  background-image: url("/backgrounds/background_3.png");
-  background-repeat: no-repeat;
-  background-size: 100% 100%;
+  background: linear-gradient(180deg, #0369a1 0%, #0284c7 25%, #0ea5e9 55%, #38bdf8 80%, #7dd3fc 100%);
   border-top: 3px solid rgba(255,255,255,0.4);
 }
 
 .water-shimmer {
   position: absolute; inset: 0; pointer-events: none;
   background:
+    var(--tank-shade),
     radial-gradient(ellipse 70% 25% at 15% 15%, rgba(255,255,255,0.12) 0%, transparent 70%),
     radial-gradient(ellipse 50% 20% at 80% 25%, rgba(255,255,255,0.08) 0%, transparent 70%),
     radial-gradient(ellipse 90% 30% at 50% 90%, rgba(3,105,161,0.3) 0%, transparent 70%);
+}
+
+/* Faint wave texture — just a pinch over the gradient.
+   No tiling (single covered copy) = no seam lines; tiny blur softens the stretch. */
+.water-shimmer::before {
+  content: "";
+  position: absolute; inset: 0;
+  background: url("/backgrounds/background_3.png") center / cover no-repeat;
+  filter: blur(2px);
+  opacity: 0.12;
 }
 
 /* Seabed */
@@ -747,14 +761,15 @@ html, body, #root {
 .icon-btn {
   width: 32px; height: 32px; border-radius: 50%;
   border: none; cursor: pointer; font-size: 16px;
-  background: rgba(255,255,255,0.6);
+  color: var(--icon-btn-color);
+  background: var(--icon-btn-bg);
   backdrop-filter: blur(8px);
   display: flex; align-items: center; justify-content: center;
   transition: transform 0.1s, background 0.1s;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   flex-shrink: 0;
 }
-.icon-btn:hover { transform: scale(1.1); background: rgba(255,255,255,0.85); }
+.icon-btn:hover { transform: scale(1.1); background: var(--icon-btn-hover); }
 .icon-btn:active { transform: scale(0.93); }
 .icon-btn.market-btn { background: linear-gradient(135deg, rgba(14,165,233,0.2), rgba(99,102,241,0.2)); }
 
@@ -795,32 +810,32 @@ html, body, #root {
 .bag-row {
   display: flex; align-items: center; gap: 12px;
   padding: 14px 18px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
+  border-bottom: 1px solid var(--bag-sep);
   cursor: pointer;
   transition: background 0.1s;
   border-radius: 10px;
   margin: 4px 8px;
 }
-.bag-row:hover { background: rgba(14,165,233,0.06); }
+.bag-row:hover { background: var(--bag-hover); }
 
 .bag-row-icon { font-size: 28px; }
 .bag-row-info { flex: 1; }
-.bag-row-label { font-size: 10px; color: #94a3b8; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
-.bag-row-name  { font-size: 14px; font-weight: 700; color: #0f172a; }
-.bag-row-count { font-size: 12px; color: #64748b; font-weight: 500; }
-.bag-row-change { font-size: 12px; color: #0ea5e9; font-weight: 700; white-space: nowrap; }
+.bag-row-label { font-size: 10px; color: var(--bag-label); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+.bag-row-name  { font-size: 14px; font-weight: 700; color: var(--bag-name); }
+.bag-row-count { font-size: 12px; color: var(--bag-cnt); font-weight: 500; }
+.bag-row-change { font-size: 12px; color: var(--bag-change); font-weight: 700; white-space: nowrap; }
 
 .bag-back-btn {
   margin: 12px 18px 4px;
   padding: 8px 14px;
-  background: rgba(0,0,0,0.04);
-  border: 1px solid rgba(0,0,0,0.08);
+  background: var(--back-bg);
+  border: 1px solid var(--back-border);
   border-radius: 8px;
   cursor: pointer;
-  font-size: 13px; font-weight: 600; color: #475569;
+  font-size: 13px; font-weight: 600; color: var(--back-color);
   transition: background 0.1s;
 }
-.bag-back-btn:hover { background: rgba(0,0,0,0.08); }
+.bag-back-btn:hover { background: var(--back-hover); }
 
 /* ── Market overlay ──────────────────────────────────────────────────────────── */
 .market-overlay {
@@ -1009,7 +1024,7 @@ html, body, #root {
 .history-row {
   display: flex; align-items: center; gap: 10px;
   padding: 8px 20px;
-  border-bottom: 1px solid rgba(0,0,0,0.07);
+  border-bottom: 1px solid var(--history-border);
 }
 .history-row:last-child { border-bottom: none; }
 .history-fish-icon { width: 32px; height: 32px; flex-shrink: 0; }
@@ -1017,6 +1032,6 @@ html, body, #root {
   flex: 1; display: flex; flex-direction: column; gap: 1px; min-width: 0;
 }
 .history-fish-name { font-size: 13px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.history-fish-rarity { font-size: 10px; color: rgba(0,0,0,0.4); text-transform: capitalize; }
-.history-time { font-size: 11px; color: rgba(0,0,0,0.38); flex-shrink: 0; white-space: nowrap; }
-.history-empty { color: rgba(0,0,0,0.4); font-size: 13px; text-align: center; padding: 24px 0; }
+.history-fish-rarity { font-size: 10px; color: var(--history-rarity); text-transform: capitalize; }
+.history-time { font-size: 11px; color: var(--history-time); flex-shrink: 0; white-space: nowrap; }
+.history-empty { color: var(--history-empty); font-size: 13px; text-align: center; padding: 24px 0; }

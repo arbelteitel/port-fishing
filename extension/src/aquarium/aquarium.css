@@ -51,10 +51,7 @@ html, body, #root {
   position: absolute;
   inset: 0;
   overflow: hidden;
-  background-color: #0b6ea3;
-  background-image: url("/backgrounds/background_3.png");
-  background-repeat: no-repeat;
-  background-size: 100% 100%;
+  background: linear-gradient(180deg, #0369a1 0%, #0284c7 25%, #0ea5e9 55%, #38bdf8 80%, #7dd3fc 100%);
   cursor: crosshair;
 }
 
@@ -64,6 +61,16 @@ html, body, #root {
     radial-gradient(ellipse 70% 25% at 15% 15%, rgba(255,255,255,0.12) 0%, transparent 70%),
     radial-gradient(ellipse 50% 20% at 80% 25%, rgba(255,255,255,0.08) 0%, transparent 70%),
     radial-gradient(ellipse 90% 30% at 50% 90%, rgba(3,105,161,0.3) 0%, transparent 70%);
+}
+
+/* Faint wave texture — just a pinch over the gradient.
+   No tiling (single covered copy) = no seam lines; tiny blur softens the stretch. */
+.water-shimmer::before {
+  content: "";
+  position: absolute; inset: 0;
+  background: url("/backgrounds/background_3.png") center / cover no-repeat;
+  filter: blur(3px);
+  opacity: 0.12;
 }
 
 /* Seabed */

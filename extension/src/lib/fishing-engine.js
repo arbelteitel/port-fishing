@@ -5,10 +5,10 @@ import { FISH, RARITY_WEIGHTS, getFishByPool } from "./fish-registry.js";
 function rollRarity(rarityBonus = 0) {
   // rarityBonus shifts weight toward rarer outcomes (0.0 - 1.0 scale)
   const weights = {
-    common:    Math.max(5,  RARITY_WEIGHTS.common    - rarityBonus * 30),
-    uncommon:  RARITY_WEIGHTS.uncommon  + rarityBonus * 10,
-    rare:      RARITY_WEIGHTS.rare      + rarityBonus * 12,
-    legendary: RARITY_WEIGHTS.legendary + rarityBonus * 8,
+    common:    Math.max(5,  RARITY_WEIGHTS.common    - rarityBonus * 50),
+    uncommon:  RARITY_WEIGHTS.uncommon  + rarityBonus * 12,
+    rare:      RARITY_WEIGHTS.rare      + rarityBonus * 22,
+    legendary: RARITY_WEIGHTS.legendary + rarityBonus * 5,
   };
 
   const total = Object.values(weights).reduce((a, b) => a + b, 0);
