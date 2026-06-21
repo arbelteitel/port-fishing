@@ -1,0 +1,35 @@
+{
+  "manifest_version": 3,
+  "name": "Port Fishing",
+  "version": "0.1.0",
+  "description": "Turn your Port.io SDLC activity into a fishing game.",
+  "permissions": ["storage", "alarms", "sidePanel"],
+  "host_permissions": ["https://app.getport.io/*", "https://api.getport.io/*"],
+  "background": {
+    "service_worker": "src/background/index.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://app.getport.io/*"],
+      "js": ["src/content/index.jsx"],
+      "css": ["src/content/content.css"]
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "assets/icon16.png",
+      "48": "assets/icon48.png",
+      "128": "assets/icon128.png"
+    }
+  },
+  "side_panel": {
+    "default_path": "aquarium.html"
+  },
+  "icons": {
+    "16": "assets/icon16.png",
+    "48": "assets/icon48.png",
+    "128": "assets/icon128.png"
+  }
+}
