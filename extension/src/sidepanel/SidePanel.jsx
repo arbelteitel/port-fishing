@@ -298,9 +298,6 @@ function Aquarium({ fish, decorations, onMoveDecoration, scale = DECO_SCALE.pane
           );
         })}
       </div>
-      {readOnly && (
-        <div className="tank-readonly-hint">Open full screen to arrange decorations</div>
-      )}
     </div>
   );
 }
@@ -654,6 +651,12 @@ function Market({ catches, inventory, goldCoins, ownedRodIds, ownedDecorations, 
               </div>
             );
           })}
+
+          {tab === "decos" && (
+            <div className="market-did-you-know">
+              💡 Did you know? Open the full-screen aquarium to drag and arrange your decorations.
+            </div>
+          )}
 
           {tab === "decos" && [...DECORATION_CATALOG].sort((a, b) => a.price - b.price).map(dec => {
             const owned = ownedDecorations.some(d => d.id === dec.id);

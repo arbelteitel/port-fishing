@@ -174,7 +174,7 @@ html, body, #root {
 
 .editor-toggle-btn {
   position: absolute;
-  bottom: 20px; right: 20px;
+  top: 16px; right: 20px;
   z-index: 30;
   background: rgba(3, 50, 90, 0.4);
   backdrop-filter: blur(10px);
@@ -185,7 +185,7 @@ html, body, #root {
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  opacity: 0.3;
+  opacity: 0.45;
   transition: opacity 0.3s, background 0.2s, color 0.2s, border-color 0.2s;
   user-select: none;
 }
