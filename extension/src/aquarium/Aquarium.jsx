@@ -49,10 +49,12 @@ function Tank({ fish }) {
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
-    const SEABED     = 28;
-    const MARGIN     = 18;
-    const WALL_RANGE = 60;
-    const WALL_FORCE = 0.14;
+    const SEABED      = 28;
+    const MARGIN      = 18;
+    const WALL_RANGE  = 60;
+    const WALL_FORCE  = 0.14;
+    const TOP_FORCE   = 0.32;
+    const GRAVITY     = 0.018;
 
     function tick() {
       const W = container.clientWidth;
@@ -72,8 +74,9 @@ function Tank({ fish }) {
         s.vy = (s.vy / spd) * targetSpd;
         if (s.x < WALL_RANGE)               s.vx += WALL_FORCE * (1 - s.x / WALL_RANGE);
         if (s.x > W - WALL_RANGE)           s.vx -= WALL_FORCE * (1 - (W - s.x) / WALL_RANGE);
-        if (s.y < WALL_RANGE)               s.vy += WALL_FORCE * (1 - s.y / WALL_RANGE);
+        if (s.y < WALL_RANGE)               s.vy += TOP_FORCE  * (1 - s.y / WALL_RANGE);
         if (s.y > bottomLimit - WALL_RANGE) s.vy -= WALL_FORCE * (1 - (bottomLimit - s.y) / WALL_RANGE);
+        s.vy += GRAVITY;
         if (s.fleeTtl > 0) {
           s.vx += s.fleeVx; s.vy += s.fleeVy;
           s.fleeVx *= 0.88; s.fleeVy *= 0.88;

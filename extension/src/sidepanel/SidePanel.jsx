@@ -19,14 +19,14 @@ const comboImg = (rodId, baitId) => `/items/${rodId}_rod_bait_${baitId}.png`;
 // ids match the bait_<id>.png asset names so combo art can be resolved.
 
 const BAIT_TYPES = [
-  { id: "basic",        name: "Doughball",    img: baitImg("basic"),        rarity: "common",    boost: 0,    price: 5,   description: "Gets the job done. Barely." },
-  { id: "green",        name: "Algae Pellet", img: baitImg("green"),        rarity: "common",    boost: 0.12, price: 15,  description: "Fresh and grassy. Fish nibble politely." },
-  { id: "red",          name: "Salmon Roe",   img: baitImg("red"),          rarity: "uncommon",  boost: 0.22, price: 25,  description: "Bright and juicy. Hard to ignore." },
-  { id: "black",        name: "Boilie",       img: baitImg("black"),        rarity: "uncommon",  boost: 0.32, price: 40,  description: "Dense and dark. Sinks to the good spots." },
-  { id: "fish",         name: "Cut Bait",     img: baitImg("fish"),         rarity: "rare",      boost: 0.42, price: 65,  description: "A chunk of the real thing. Predators love it." },
-  { id: "fish_black",   name: "Chum Slick",   img: baitImg("fish_black"),   rarity: "rare",      boost: 0.52, price: 95,  description: "A trail of temptation. Draws a crowd." },
-  { id: "yellow_point", name: "Amber Jig",    img: baitImg("yellow_point"), rarity: "legendary", boost: 0.63, price: 135, description: "Glints like treasure. Rare fish circle in." },
-  { id: "golden",       name: "Golden Lure",  img: baitImg("golden"),       rarity: "legendary", boost: 0.75, price: 185, description: "Dark arts. Almost guarantees something extraordinary." },
+  { id: "basic",        name: "Doughball Bait", img: baitImg("basic"),        rarity: "common",    boost: 0,    price: 5,   description: "Gets the job done. Barely." },
+  { id: "green",        name: "Algae Bait",     img: baitImg("green"),        rarity: "common",    boost: 0.12, price: 15,  description: "Fresh and grassy. Fish nibble politely." },
+  { id: "red",          name: "Roe Bait",       img: baitImg("red"),          rarity: "uncommon",  boost: 0.22, price: 25,  description: "Bright and juicy. Hard to ignore." },
+  { id: "black",        name: "Boilie Bait",    img: baitImg("black"),        rarity: "uncommon",  boost: 0.32, price: 40,  description: "Dense and dark. Sinks to the good spots." },
+  { id: "fish",         name: "Cut Bait",       img: baitImg("fish"),         rarity: "rare",      boost: 0.42, price: 65,  description: "A chunk of the real thing. Predators love it." },
+  { id: "fish_black",   name: "Chum Bait",      img: baitImg("fish_black"),   rarity: "rare",      boost: 0.52, price: 95,  description: "A trail of temptation. Draws a crowd." },
+  { id: "yellow_point", name: "Amber Bait",     img: baitImg("yellow_point"), rarity: "legendary", boost: 0.63, price: 135, description: "Glints like treasure. Rare fish circle in." },
+  { id: "golden",       name: "Golden Bait",    img: baitImg("golden"),       rarity: "legendary", boost: 0.75, price: 185, description: "Dark arts. Almost guarantees something extraordinary." },
 ];
 
 // ── Rod system ────────────────────────────────────────────────────────────────
