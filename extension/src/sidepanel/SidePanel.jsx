@@ -34,10 +34,10 @@ const BAIT_TYPES = [
 // ids match the <id>_rod.png asset names.
 
 const ROD_TYPES = [
-  { id: "basic", name: "Basic Rod",  img: rodImg("basic"), price: 0,   rodBoost: 0,    description: "A trusty rod. Gets the job done." },
-  { id: "black", name: "Carbon Rod", img: rodImg("black"), price: 55,  rodBoost: 0.12, description: "Stiff and sensitive. Improved odds." },
-  { id: "blue",  name: "Tidal Rod",  img: rodImg("blue"),  price: 140, rodBoost: 0.22, description: "Tuned for the deep. Serious power." },
-  { id: "pink",  name: "Coral Rod",  img: rodImg("pink"),  price: 300, rodBoost: 0.35, description: "Forged from rare catches. The finest cast." },
+  { id: "basic", name: "Basic Rod",  img: rodImg("basic"), price: 0,    rodBoost: 0,    description: "A trusty rod. Gets the job done." },
+  { id: "black", name: "Carbon Rod", img: rodImg("black"), price: 250,  rodBoost: 0.12, description: "Stiff and sensitive. Improved odds." },
+  { id: "blue",  name: "Tidal Rod",  img: rodImg("blue"),  price: 750,  rodBoost: 0.22, description: "Tuned for the deep. Serious power." },
+  { id: "pink",  name: "Coral Rod",  img: rodImg("pink"),  price: 2000, rodBoost: 0.35, description: "Forged from rare catches. The finest cast." },
 ];
 
 // ── Fish helpers ──────────────────────────────────────────────────────────────
@@ -530,6 +530,14 @@ const MARKET_TABS = [
 function Market({ catches, inventory, goldCoins, ownedRodIds, ownedDecorations, onClose, onSellFish, onSellAllFish, onBuyBait, onBuyRod, onBuyDecoration }) {
   const [tab, setTab] = useState("fish");
   const [baitQty, setBaitQty] = useState(() => Object.fromEntries(BAIT_TYPES.map(b => [b.id, 1])));
+  const [toast, setToast] = useState(null);
+  const toastRef = useRef(null);
+
+  function showToast(msg) {
+    setToast(msg);
+    clearTimeout(toastRef.current);
+    toastRef.current = setTimeout(() => setToast(null), 2200);
+  }
 
   function setQty(baitId, delta) {
     setBaitQty(prev => {
@@ -548,6 +556,7 @@ function Market({ catches, inventory, goldCoins, ownedRodIds, ownedDecorations, 
           <div className="market-gold">🪙 {goldCoins}</div>
           <button className="market-close" onClick={onClose}>✕</button>
         </div>
+        {toast && <div className="market-toast">{toast}</div>}
 
         <div className="market-tabs">
           {MARKET_TABS.map(t => (
@@ -565,7 +574,7 @@ function Market({ catches, inventory, goldCoins, ownedRodIds, ownedDecorations, 
               : <>
                   <div className="market-sell-all-row">
                     <span className="market-sell-all-label">{catches.length} fish · 🪙 {catches.reduce((s, f) => s + SELL_PRICES[f.rarity], 0)} total</span>
-                    <button className="market-sell-all-btn" onClick={onSellAllFish}>Sell All</button>
+                    <button className="market-sell-all-btn" onClick={() => { onSellAllFish(); showToast(`Sold ${catches.length} fish for 🪙 ${catches.reduce((s, f) => s + SELL_PRICES[f.rarity], 0)}!`); }}>Sell All</button>
                   </div>
                   {catches.map(fish => (
                     <div key={fish.id} className="market-row">
@@ -604,7 +613,7 @@ function Market({ catches, inventory, goldCoins, ownedRodIds, ownedDecorations, 
                   </div>
                   <button
                     className={`market-buy-btn${!canAfford ? ' disabled' : ''}`}
-                    onClick={() => canAfford && onBuyBait(bait, qty)}
+                    onClick={() => { if (canAfford) { onBuyBait(bait, qty); showToast(`Bought ${qty}x ${bait.name}!`); setBaitQty(prev => ({ ...prev, [bait.id]: 1 })); } }}
                     disabled={!canAfford}
                   >
                     🪙 {totalCost}
