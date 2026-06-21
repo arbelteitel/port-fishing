@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { FISH as REGISTRY_FISH } from "../lib/fish-registry.js";
+import { DECORATION_CATALOG, getDecoration, decoImg, DECO_SCALE } from "../lib/decorations.js";
 import "./sidepanel.css";
 
 const RARITY_COLORS = { common: "#94a3b8", uncommon: "#22c55e", rare: "#38bdf8", legendary: "#f59e0b" };
@@ -39,12 +40,6 @@ const ROD_TYPES = [
   { id: "pink",  name: "Coral Rod",  img: rodImg("pink"),  price: 300, rodBoost: 0.35, description: "Forged from rare catches. The finest cast." },
 ];
 
-// ── Decorations ───────────────────────────────────────────────────────────────
-
-const DECORATION_CATALOG = [
-  { id: "ship", name: "Sunken Ship", emoji: "🚢", price: 25, description: "A weathered ship resting on the seafloor." },
-];
-
 // ── Fish helpers ──────────────────────────────────────────────────────────────
 
 function getRarityWeights(boost = 0) {
@@ -79,7 +74,7 @@ const MOCK_CATCHES = [
 
 // ── Physics aquarium ──────────────────────────────────────────────────────────
 
-function Aquarium({ fish, decorations, onMoveDecoration }) {
+function Aquarium({ fish, decorations, onMoveDecoration, scale = DECO_SCALE.panel, maxDecorations = Infinity }) {
   const containerRef = useRef(null);
   const elemsRef     = useRef([]);
   const stateRef     = useRef([]);
@@ -279,17 +274,27 @@ function Aquarium({ fish, decorations, onMoveDecoration }) {
         <div className="seaweed" style={{ left: "40%", height: 22, animationDelay: "-1.2s" }} />
         <div className="seaweed" style={{ right: "12%",height: 36, animationDelay: "-2.1s" }} />
 
-        {decorations.map(dec => (
-          <div
-            key={dec.id}
-            className="tank-decoration"
-            style={{ left: `${dec.xPos}%` }}
-            onMouseDown={e => handleDecoDragStart(e, dec.id)}
-            title={`${dec.name} — drag to reposition`}
-          >
-            {dec.emoji}
-          </div>
-        ))}
+        {decorations.slice(0, maxDecorations).map(dec => {
+          const meta = getDecoration(dec.id);
+          if (!meta) return null;
+          return (
+            <div
+              key={dec.id}
+              className="tank-decoration"
+              style={{ left: `${dec.xPos}%` }}
+              onMouseDown={e => handleDecoDragStart(e, dec.id)}
+              title={`${meta.name} — drag to reposition`}
+            >
+              <img
+                className="tank-decoration-img"
+                src={decoImg(meta.file)}
+                alt={meta.name}
+                draggable={false}
+                style={{ width: meta.w * scale, height: meta.h * scale }}
+              />
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -522,8 +527,18 @@ const MARKET_TABS = [
   { id: "decos", label: "Decorations", emoji: "🏚️" },
 ];
 
-function Market({ catches, inventory, goldCoins, ownedRodIds, ownedDecorations, onClose, onSellFish, onBuyBait, onBuyRod, onBuyDecoration }) {
+function Market({ catches, inventory, goldCoins, ownedRodIds, ownedDecorations, onClose, onSellFish, onSellAllFish, onBuyBait, onBuyRod, onBuyDecoration }) {
   const [tab, setTab] = useState("fish");
+  const [baitQty, setBaitQty] = useState(() => Object.fromEntries(BAIT_TYPES.map(b => [b.id, 1])));
+
+  function setQty(baitId, delta) {
+    setBaitQty(prev => {
+      const bait = BAIT_TYPES.find(b => b.id === baitId);
+      const maxAffordable = Math.max(1, Math.floor(goldCoins / bait.price));
+      const next = Math.min(maxAffordable, Math.max(1, (prev[baitId] || 1) + delta));
+      return { ...prev, [baitId]: next };
+    });
+  }
 
   return (
     <div className="market-overlay">
@@ -547,23 +562,32 @@ function Market({ catches, inventory, goldCoins, ownedRodIds, ownedDecorations, 
           {tab === "fish" && (
             catches.length === 0
               ? <div className="market-empty">No fish to sell. Go fishing first!</div>
-              : catches.map(fish => (
-                <div key={fish.id} className="market-row">
-                  <img src={fish.img} alt={fish.name} className="fish-sprite market-fish-icon" />
-                  <div className="market-row-info">
-                    <div className="market-row-name">{fish.name}</div>
-                    <div className="market-row-rarity" style={{ color: RARITY_COLORS[fish.rarity] }}>{fish.rarity}</div>
+              : <>
+                  <div className="market-sell-all-row">
+                    <span className="market-sell-all-label">{catches.length} fish · 🪙 {catches.reduce((s, f) => s + SELL_PRICES[f.rarity], 0)} total</span>
+                    <button className="market-sell-all-btn" onClick={onSellAllFish}>Sell All</button>
                   </div>
-                  <button className="market-sell-btn" onClick={() => onSellFish(fish)}>
-                    Sell · 🪙 {SELL_PRICES[fish.rarity]}
-                  </button>
-                </div>
-              ))
+                  {catches.map(fish => (
+                    <div key={fish.id} className="market-row">
+                      <img src={fish.img} alt={fish.name} className="fish-sprite market-fish-icon" />
+                      <div className="market-row-info">
+                        <div className="market-row-name">{fish.name}</div>
+                        <div className="market-row-rarity" style={{ color: RARITY_COLORS[fish.rarity] }}>{fish.rarity}</div>
+                      </div>
+                      <button className="market-sell-btn" onClick={() => onSellFish(fish)}>
+                        Sell · 🪙 {SELL_PRICES[fish.rarity]}
+                      </button>
+                    </div>
+                  ))}
+                </>
           )}
 
           {tab === "baits" && BAIT_TYPES.map(bait => {
             const owned = inventory.find(b => b.id === bait.id)?.count ?? 0;
-            const canAfford = goldCoins >= bait.price;
+            const qty = baitQty[bait.id] || 1;
+            const totalCost = bait.price * qty;
+            const canAfford = goldCoins >= totalCost;
+            const canAffordOne = goldCoins >= bait.price;
             return (
               <div key={bait.id} className="market-row">
                 <img className="market-row-emoji item-art" src={bait.img} alt={bait.name} />
@@ -572,13 +596,20 @@ function Market({ catches, inventory, goldCoins, ownedRodIds, ownedDecorations, 
                   <div className="market-row-desc">{bait.description}</div>
                   <div className="market-row-stock">In bag: {owned}x</div>
                 </div>
-                <button
-                  className={`market-buy-btn${!canAfford ? ' disabled' : ''}`}
-                  onClick={() => canAfford && onBuyBait(bait)}
-                  disabled={!canAfford}
-                >
-                  🪙 {bait.price}
-                </button>
+                <div className="market-buy-ctrl">
+                  <div className="market-qty-stepper">
+                    <button className="market-qty-btn" onClick={() => setQty(bait.id, -1)} disabled={qty <= 1}>-</button>
+                    <span className="market-qty-val">{qty}</span>
+                    <button className="market-qty-btn" onClick={() => setQty(bait.id, 1)} disabled={!canAffordOne}>+</button>
+                  </div>
+                  <button
+                    className={`market-buy-btn${!canAfford ? ' disabled' : ''}`}
+                    onClick={() => canAfford && onBuyBait(bait, qty)}
+                    disabled={!canAfford}
+                  >
+                    🪙 {totalCost}
+                  </button>
+                </div>
               </div>
             );
           })}
@@ -615,7 +646,7 @@ function Market({ catches, inventory, goldCoins, ownedRodIds, ownedDecorations, 
             const canAfford = goldCoins >= dec.price;
             return (
               <div key={dec.id} className="market-row">
-                <span className="market-row-emoji">{dec.emoji}</span>
+                <img className="market-row-emoji item-art deco-thumb" src={decoImg(dec.file)} alt={dec.name} />
                 <div className="market-row-info">
                   <div className="market-row-name">{dec.name}</div>
                   <div className="market-row-desc">{dec.description}</div>
@@ -722,6 +753,38 @@ export default function SidePanel() {
     chrome.storage.local.set({ panelCatchIds: catches.map(f => f.id) });
   }, [catches]);
 
+  // Persist decorations so the full-screen aquarium shows the same layout.
+  // decoSyncRef holds the last serialized value seen, so writes we triggered
+  // don't bounce back through the storage listener and loop forever.
+  const decoSyncRef = useRef(JSON.stringify(ownedDecorations));
+  useEffect(() => {
+    const serialized = JSON.stringify(ownedDecorations);
+    if (serialized === decoSyncRef.current) return;
+    decoSyncRef.current = serialized;
+    chrome.storage.local.set({ panelDecorations: ownedDecorations });
+  }, [ownedDecorations]);
+
+  // Load saved decorations on mount + stay in sync with full-screen moves.
+  useEffect(() => {
+    chrome.storage.local.get(["panelDecorations"], ({ panelDecorations }) => {
+      if (Array.isArray(panelDecorations)) {
+        decoSyncRef.current = JSON.stringify(panelDecorations);
+        setOwnedDecorations(panelDecorations);
+      }
+    });
+    const onChange = (changes, area) => {
+      if (area === "local" && changes.panelDecorations) {
+        const next = changes.panelDecorations.newValue || [];
+        const serialized = JSON.stringify(next);
+        if (serialized === decoSyncRef.current) return;
+        decoSyncRef.current = serialized;
+        setOwnedDecorations(next);
+      }
+    };
+    chrome.storage.onChanged.addListener(onChange);
+    return () => chrome.storage.onChanged.removeListener(onChange);
+  }, []);
+
   useEffect(() => {
     const id = setInterval(() => {
       if (Math.random() < 0.15) {
@@ -733,6 +796,23 @@ export default function SidePanel() {
 
   const inventoryRef = useRef(inventory);
   inventoryRef.current = inventory;
+
+  // Clear feed when all casts resolve
+  useEffect(() => {
+    if (activeCasts.length === 0) setCatchLog([]);
+  }, [activeCasts.length]);
+
+  // Clear stale fishing state when panel is closed
+  useEffect(() => {
+    const onVisChange = () => {
+      if (document.visibilityState === 'hidden') {
+        setActiveCasts([]);
+        setCatchLog([]);
+      }
+    };
+    document.addEventListener('visibilitychange', onVisChange);
+    return () => document.removeEventListener('visibilitychange', onVisChange);
+  }, []);
 
   function goFish() {
     const currentInv = inventoryRef.current;
@@ -793,10 +873,17 @@ export default function SidePanel() {
     setGoldCoins(g => g + SELL_PRICES[fish.rarity]);
   }
 
-  function buyBait(bait) {
-    if (goldCoins < bait.price) return;
-    setGoldCoins(g => g - bait.price);
-    setInventory(inv => inv.map(b => b.id === bait.id ? { ...b, count: b.count + 1 } : b));
+  function buyBait(bait, qty = 1) {
+    const total = bait.price * qty;
+    if (goldCoins < total) return;
+    setGoldCoins(g => g - total);
+    setInventory(inv => inv.map(b => b.id === bait.id ? { ...b, count: b.count + qty } : b));
+  }
+
+  function sellAllFish() {
+    const total = catches.reduce((s, f) => s + SELL_PRICES[f.rarity], 0);
+    setCatches([]);
+    setGoldCoins(g => g + total);
   }
 
   function buyRod(rod) {
@@ -808,7 +895,9 @@ export default function SidePanel() {
   function buyDecoration(dec) {
     if (goldCoins < dec.price || ownedDecorations.some(d => d.id === dec.id)) return;
     setGoldCoins(g => g - dec.price);
-    setOwnedDecorations(prev => [...prev, { ...dec, xPos: 50 }]);
+    // Stagger placement so new buys don't stack on the same spot.
+    const xPos = 12 + ((ownedDecorations.length * 17) % 76);
+    setOwnedDecorations(prev => [...prev, { id: dec.id, xPos }]);
   }
 
   function moveDecoration(id, xPos) {
@@ -828,6 +917,7 @@ export default function SidePanel() {
           ownedDecorations={ownedDecorations}
           onClose={() => setShowMarket(false)}
           onSellFish={sellFish}
+          onSellAllFish={sellAllFish}
           onBuyBait={buyBait}
           onBuyRod={buyRod}
           onBuyDecoration={buyDecoration}
@@ -914,6 +1004,8 @@ export default function SidePanel() {
           fish={top10}
           decorations={ownedDecorations}
           onMoveDecoration={moveDecoration}
+          scale={DECO_SCALE.panel}
+          maxDecorations={4}
         />
         {activeCasts.length > 0 && (
           <FishingOverlay

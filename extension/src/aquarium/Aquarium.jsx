@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { FISH } from "../lib/fish-registry.js";
+import { getDecoration, decoImg, DECO_SCALE } from "../lib/decorations.js";
 import "./aquarium.css";
 
 const sizeToSpeed = (size) => 22 / size;
@@ -7,7 +8,7 @@ const sizeToPx    = (size) => Math.max(42, Math.round(size * 1.8));
 
 // ── Physics tank ──────────────────────────────────────────────────────────────
 
-function Tank({ fish }) {
+function Tank({ fish, decorations, onMoveDecoration }) {
   const containerRef = useRef(null);
   const elemsRef     = useRef([]);
   const stateRef     = useRef([]);
@@ -130,6 +131,23 @@ function Tank({ fish }) {
     });
   }, []);
 
+  function handleDecoDragStart(e, decId) {
+    e.stopPropagation();
+    const tank = containerRef.current;
+    if (!tank) return;
+    const rect = tank.getBoundingClientRect();
+    function onMove(ev) {
+      const x = ((ev.clientX - rect.left) / rect.width) * 100;
+      onMoveDecoration(decId, Math.max(3, Math.min(95, x)));
+    }
+    function onUp() {
+      document.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseup", onUp);
+    }
+    document.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseup", onUp);
+  }
+
   return (
     <div className="tank" ref={containerRef} onClick={handleClick}>
       <div className="water-shimmer" />
@@ -159,6 +177,28 @@ function Tank({ fish }) {
         <div className="seaweed" style={{ left: "45%", height: 50, animationDelay: "-1.6s" }} />
         <div className="seaweed" style={{ left: "68%", height: 34, animationDelay: "-2.4s" }} />
         <div className="seaweed" style={{ right: "8%", height: 44, animationDelay: "-3.1s" }} />
+
+        {decorations.map(dec => {
+          const meta = getDecoration(dec.id);
+          if (!meta) return null;
+          return (
+            <div
+              key={dec.id}
+              className="tank-decoration"
+              style={{ left: `${dec.xPos}%` }}
+              onMouseDown={e => handleDecoDragStart(e, dec.id)}
+              title={`${meta.name} — drag to reposition`}
+            >
+              <img
+                className="tank-decoration-img"
+                src={decoImg(meta.file)}
+                alt={meta.name}
+                draggable={false}
+                style={{ width: meta.w * DECO_SCALE.full, height: meta.h * DECO_SCALE.full }}
+              />
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -169,6 +209,29 @@ function Tank({ fish }) {
 export default function Aquarium() {
   const [catches, setCatches] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [decorations, setDecorations] = useState([]);
+
+  // Load decorations placed in the side panel + stay in sync with live changes.
+  useEffect(() => {
+    chrome.storage.local.get(["panelDecorations"], ({ panelDecorations }) => {
+      if (Array.isArray(panelDecorations)) setDecorations(panelDecorations);
+    });
+    const onChange = (changes, area) => {
+      if (area === "local" && changes.panelDecorations) {
+        setDecorations(changes.panelDecorations.newValue || []);
+      }
+    };
+    chrome.storage.onChanged.addListener(onChange);
+    return () => chrome.storage.onChanged.removeListener(onChange);
+  }, []);
+
+  const moveDecoration = useCallback((id, xPos) => {
+    setDecorations(prev => {
+      const next = prev.map(d => d.id === id ? { ...d, xPos } : d);
+      chrome.storage.local.set({ panelDecorations: next });
+      return next;
+    });
+  }, []);
 
   useEffect(() => {
     chrome.storage.local.get(["panelCatchIds", "portUserEmail"], async ({ panelCatchIds, portUserEmail }) => {
@@ -203,7 +266,7 @@ export default function Aquarium() {
         )}
         {loading && <span className="aq-hud-count">Loading...</span>}
       </div>
-      <Tank fish={displayFish} />
+      <Tank fish={displayFish} decorations={decorations} onMoveDecoration={moveDecoration} />
     </div>
   );
 }

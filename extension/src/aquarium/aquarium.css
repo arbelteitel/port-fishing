@@ -51,13 +51,11 @@ html, body, #root {
   position: absolute;
   inset: 0;
   overflow: hidden;
-  background: linear-gradient(180deg,
-    #0369a1 0%,
-    #0284c7 20%,
-    #0ea5e9 50%,
-    #38bdf8 80%,
-    #7dd3fc 100%
-  );
+  background-color: #0b6ea3;
+  background-image: url("/backgrounds/background_3.png");
+  background-repeat: repeat;
+  background-size: 336px auto;
+  image-rendering: pixelated;
   cursor: crosshair;
 }
 
@@ -123,6 +121,29 @@ html, body, #root {
   will-change: transform, left, top;
   transition: filter 0.3s ease;
   line-height: 1;
+}
+
+/* Decorations (floor-bound, draggable) */
+.tank-decoration {
+  position: absolute;
+  bottom: 100%;
+  transform: translateX(-50%);
+  cursor: grab;
+  user-select: none;
+  line-height: 0;
+  z-index: 5;
+  filter: drop-shadow(0 3px 8px rgba(0,0,0,0.45));
+  transition: filter 0.15s;
+}
+.tank-decoration:hover { filter: drop-shadow(0 5px 14px rgba(255,255,255,0.5)); }
+.tank-decoration:active { cursor: grabbing; }
+.tank-decoration-img {
+  display: block;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  -webkit-user-drag: none;
+  user-select: none;
+  pointer-events: none;
 }
 
 /* Click ripple */
