@@ -281,10 +281,10 @@ function Aquarium({ fish, decorations, onMoveDecoration, scale = DECO_SCALE.pane
           const roClass    = readOnly ? "tank-decoration--readonly" : "";
           return (
             <div
-              key={dec.id}
+              key={dec.uid || dec.id}
               className={`tank-decoration ${depthClass} ${roClass}`}
               style={{ left: `${dec.xPos}%` }}
-              onMouseDown={readOnly ? undefined : e => handleDecoDragStart(e, dec.id)}
+              onMouseDown={readOnly ? undefined : e => handleDecoDragStart(e, dec.uid || dec.id)}
               title={readOnly ? meta.name : `${meta.name} — drag to reposition`}
             >
               <img
@@ -659,7 +659,7 @@ function Market({ catches, inventory, goldCoins, ownedRodIds, ownedDecorations, 
           )}
 
           {tab === "decos" && [...DECORATION_CATALOG].sort((a, b) => a.price - b.price).map(dec => {
-            const owned = ownedDecorations.some(d => d.id === dec.id);
+            const ownedCount = ownedDecorations.filter(d => d.id === dec.id).length;
             const canAfford = goldCoins >= dec.price;
             return (
               <div key={dec.id} className="market-row">
@@ -667,20 +667,15 @@ function Market({ catches, inventory, goldCoins, ownedRodIds, ownedDecorations, 
                 <div className="market-row-info">
                   <div className="market-row-name">{dec.name}</div>
                   <div className="market-row-desc">{dec.description}</div>
-                  {owned && <div className="market-row-stock">Placed in your aquarium</div>}
+                  <div className="market-row-stock">In aquarium: {ownedCount}x</div>
                 </div>
-                {owned
-                  ? <span className="market-owned-badge">Owned</span>
-                  : (
-                    <button
-                      className={`market-buy-btn${!canAfford ? ' disabled' : ''}`}
-                      onClick={() => canAfford && onBuyDecoration(dec)}
-                      disabled={!canAfford}
-                    >
-                      🪙 {dec.price}
-                    </button>
-                  )
-                }
+                <button
+                  className={`market-buy-btn${!canAfford ? ' disabled' : ''}`}
+                  onClick={() => canAfford && onBuyDecoration(dec)}
+                  disabled={!canAfford}
+                >
+                  🪙 {dec.price}
+                </button>
               </div>
             );
           })}
@@ -931,15 +926,17 @@ export default function SidePanel() {
   }
 
   function buyDecoration(dec) {
-    if (goldCoins < dec.price || ownedDecorations.some(d => d.id === dec.id)) return;
+    if (goldCoins < dec.price) return;
+    const confirmed = window.confirm(`Purchase "${dec.name}" for 🪙 ${dec.price}?`);
+    if (!confirmed) return;
     setGoldCoins(g => g - dec.price);
-    // Stagger placement so new buys don't stack on the same spot.
     const xPos = 12 + ((ownedDecorations.length * 17) % 76);
-    setOwnedDecorations(prev => [...prev, { id: dec.id, xPos }]);
+    const uid = `${dec.id}_${Date.now()}`;
+    setOwnedDecorations(prev => [...prev, { id: dec.id, uid, xPos }]);
   }
 
-  function moveDecoration(id, xPos) {
-    setOwnedDecorations(prev => prev.map(d => d.id === id ? { ...d, xPos } : d));
+  function moveDecoration(uid, xPos) {
+    setOwnedDecorations(prev => prev.map(d => (d.uid || d.id) === uid ? { ...d, xPos } : d));
   }
 
   function closeBag() { setBagClosing(true); }
@@ -992,7 +989,6 @@ export default function SidePanel() {
           onClosed={() => { setShowBaitMenu(false); setBaitMenuClosing(false); }}
         />
       )}
-
       <header className="panel-header">
         <div className="header-brand">
           <img className="header-logo item-art" src={comboImg(equippedRod.id, activeBait.id)} alt={`${equippedRod.name} + ${activeBait.name}`} />
@@ -1009,30 +1005,6 @@ export default function SidePanel() {
           <button className="icon-btn market-btn" onClick={() => setShowMarket(true)} title="Market">🏪</button>
           <div className="hamburger-wrap">
             <button className="icon-btn hamburger-btn" onClick={() => setShowHamburger(h => !h)} title="Menu">☰</button>
-            {showHamburger && (
-              <>
-                <div className="hamburger-backdrop" onClick={() => setShowHamburger(false)} />
-                <div className="hamburger-dropdown">
-                  <button className="hamburger-item" onClick={() => { setShowBag(true); setShowHamburger(false); }}>
-                    <span className="hamburger-item-icon">🎒</span>
-                    <span className="hamburger-item-label">Loadout</span>
-                  </button>
-                  <button className="hamburger-item" onClick={() => { setShowHistory(true); setShowHamburger(false); }}>
-                    <span className="hamburger-item-icon">📋</span>
-                    <span className="hamburger-item-label">Catch History</span>
-                  </button>
-                  <button className="hamburger-item" onClick={() => { chrome.runtime.sendMessage({ type: "OPEN_AQUARIUM_WINDOW" }); setShowHamburger(false); }}>
-                    <span className="hamburger-item-icon">⛶</span>
-                    <span className="hamburger-item-label">Full-screen Aquarium</span>
-                  </button>
-                  <div className="hamburger-divider" />
-                  <button className="hamburger-item" onClick={() => { setIsDark(d => !d); setShowHamburger(false); }}>
-                    <span className="hamburger-item-icon">{themeIcon}</span>
-                    <span className="hamburger-item-label">{isDark ? 'Light Mode' : 'Dark Mode'}</span>
-                  </button>
-                </div>
-              </>
-            )}
           </div>
           <div className="bait-chip" onClick={() => setShowBaitMenu(true)}>
             <span className="bait-num">{baitCount}</span>
@@ -1077,6 +1049,30 @@ export default function SidePanel() {
           />
         )}
       </div>
+      {showHamburger && (
+        <>
+          <div className="hamburger-backdrop" onClick={() => setShowHamburger(false)} />
+          <div className="hamburger-dropdown">
+            <button className="hamburger-item" onClick={() => { setShowBag(true); setShowHamburger(false); }}>
+              <span className="hamburger-item-icon">🎒</span>
+              <span className="hamburger-item-label">Loadout</span>
+            </button>
+            <button className="hamburger-item" onClick={() => { setShowHistory(true); setShowHamburger(false); }}>
+              <span className="hamburger-item-icon">📋</span>
+              <span className="hamburger-item-label">Catch History</span>
+            </button>
+            <button className="hamburger-item" onClick={() => { chrome.runtime.sendMessage({ type: "OPEN_AQUARIUM_WINDOW" }); setShowHamburger(false); }}>
+              <span className="hamburger-item-icon">⛶</span>
+              <span className="hamburger-item-label">Full-screen Aquarium</span>
+            </button>
+            <div className="hamburger-divider" />
+            <button className="hamburger-item" onClick={() => { setIsDark(d => !d); setShowHamburger(false); }}>
+              <span className="hamburger-item-icon">{themeIcon}</span>
+              <span className="hamburger-item-label">{isDark ? 'Light Mode' : 'Dark Mode'}</span>
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 }

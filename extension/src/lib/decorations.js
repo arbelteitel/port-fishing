@@ -34,10 +34,10 @@ export const DECORATION_CATALOG = [
   { id: "shell_1",            name: "Sea Shell",       file: "shell_1.png",            w: 16, h: 16, scale: 1.2,  depth: "front", price: 10,  description: "A tiny pearly shell." },
 
   // ── Plants & grass ──────────────────────────────────────────────────────────
-  { id: "wavy_grass_1",       name: "Wavy Grass",      file: "wavy_grass_1.png",       w: 32, h: 32, scale: 1.0,  depth: "front", price: 20,  description: "Gently swaying greenery." },
-  { id: "red_plant_2",        name: "Red Plant",       file: "red_plant_2.png",        w: 32, h: 32, scale: 1.1,  depth: "front", price: 30,  description: "A vivid crimson frond." },
-  { id: "green_plant_3",      name: "Green Reeds",     file: "green_plant_3.png",      w: 48, h: 16, scale: 1.3,  depth: "front", price: 25,  description: "A spread of tall reeds." },
-  { id: "big_grass_3",        name: "Tall Grass",      file: "big_grass_3.png",        w: 32, h: 16, scale: 1.0,  depth: "front", price: 15,  description: "A tuft of seabed grass." },
+  { id: "wavy_grass_1",       name: "Wavy Grass",      file: "wavy_grass_1.png",       w: 32, h: 32, scale: 1.0,  depth: "front", price: 20,  wiggle: true, description: "Gently swaying greenery." },
+  { id: "red_plant_2",        name: "Red Plant",       file: "red_plant_2.png",        w: 32, h: 32, scale: 1.1,  depth: "front", price: 30,  wiggle: true, description: "A vivid crimson frond." },
+  { id: "green_plant_3",      name: "Green Reeds",     file: "green_plant_3.png",      w: 48, h: 16, scale: 1.3,  depth: "front", price: 25,  wiggle: true, description: "A spread of tall reeds." },
+  { id: "big_grass_3",        name: "Tall Grass",      file: "big_grass_3.png",        w: 32, h: 16, scale: 1.0,  depth: "front", price: 15,  wiggle: true, description: "A tuft of seabed grass." },
 
   // ── Rocks ────────────────────────────────────────────────────────────────────
   { id: "stone_6",            name: "Boulder",         file: "stone_6.png",            w: 80, h: 48, scale: 1.5,  depth: "back",  price: 50,  description: "A mossy underwater boulder." },

@@ -29,6 +29,7 @@ function Tank({ fish, decorations, onMoveDecoration }) {
       const halfPx = sizeToPx(f.size) / 2;
       return {
         id: f.id,
+        pool: f.pool,
         halfPx,
         x: 80 + Math.random() * (W - 160),
         y: 60 + Math.random() * (H - 160),
@@ -57,9 +58,24 @@ function Tank({ fish, decorations, onMoveDecoration }) {
     const TOP_FORCE   = 0.32;
     const GRAVITY     = 0.018;
 
+    const FLOCK_FORCE   = 0.012;
+    const FLOCK_RANGE   = 180;
+
     function tick() {
       const W = container.clientWidth;
       const H = container.clientHeight;
+
+      // compute per-pool centroids for flocking
+      const poolCentroids = {};
+      stateRef.current.forEach((s) => {
+        if (!s.pool) return;
+        if (!poolCentroids[s.pool]) poolCentroids[s.pool] = { sx: 0, sy: 0, n: 0 };
+        poolCentroids[s.pool].sx += s.x;
+        poolCentroids[s.pool].sy += s.y;
+        poolCentroids[s.pool].n  += 1;
+      });
+      Object.values(poolCentroids).forEach(c => { c.cx = c.sx / c.n; c.cy = c.sy / c.n; });
+
       stateRef.current.forEach((s, i) => {
         const bottomLimit = H - SEABED - s.halfPx;
         s.bobPhase += 0.028;
@@ -73,6 +89,17 @@ function Tank({ fish, decorations, onMoveDecoration }) {
         const spd = Math.sqrt(s.vx * s.vx + s.vy * s.vy) || 1;
         s.vx = (s.vx / spd) * targetSpd;
         s.vy = (s.vy / spd) * targetSpd;
+        // flock toward pool centroid when pool-mates exist beyond close range
+        const c = s.pool && poolCentroids[s.pool];
+        if (c && c.n > 1) {
+          const dx = c.cx - s.x;
+          const dy = c.cy - s.y;
+          const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+          if (dist > FLOCK_RANGE) {
+            s.vx += (dx / dist) * FLOCK_FORCE * s.baseSpeed;
+            s.vy += (dy / dist) * FLOCK_FORCE * s.baseSpeed;
+          }
+        }
         if (s.x < WALL_RANGE)               s.vx += WALL_FORCE * (1 - s.x / WALL_RANGE);
         if (s.x > W - WALL_RANGE)           s.vx -= WALL_FORCE * (1 - (W - s.x) / WALL_RANGE);
         if (s.y < WALL_RANGE)               s.vy += TOP_FORCE  * (1 - s.y / WALL_RANGE);
@@ -178,24 +205,28 @@ function Tank({ fish, decorations, onMoveDecoration }) {
         <div className="seaweed" style={{ left: "68%", height: 34, animationDelay: "-2.4s" }} />
         <div className="seaweed" style={{ right: "8%", height: 44, animationDelay: "-3.1s" }} />
 
-        {decorations.map(dec => {
+        {decorations.map((dec, i) => {
           const meta = getDecoration(dec.id);
           if (!meta) return null;
           const depthClass = meta.depth === "back" ? "tank-decoration--back" : "tank-decoration--front";
+          const wiggleStyle = meta.wiggle ? {
+            "--wiggle-dur": `${3.2 + (i % 5) * 0.4}s`,
+            "--wiggle-delay": `${(i % 7) * -0.6}s`,
+          } : {};
           return (
             <div
-              key={dec.id}
+              key={dec.uid || dec.id}
               className={`tank-decoration ${depthClass}`}
               style={{ left: `${dec.xPos}%` }}
-              onMouseDown={e => handleDecoDragStart(e, dec.id)}
+              onMouseDown={e => handleDecoDragStart(e, dec.uid || dec.id)}
               title={`${meta.name} — drag to reposition`}
             >
               <img
-                className="tank-decoration-img"
+                className={`tank-decoration-img${meta.wiggle ? " tank-decoration-img--wiggle" : ""}`}
                 src={decoImg(meta.file)}
                 alt={meta.name}
                 draggable={false}
-                style={{ width: meta.w * DECO_SCALE.full * (meta.scale ?? 1), height: meta.h * DECO_SCALE.full * (meta.scale ?? 1) }}
+                style={{ width: meta.w * DECO_SCALE.full * (meta.scale ?? 1), height: meta.h * DECO_SCALE.full * (meta.scale ?? 1), ...wiggleStyle }}
               />
             </div>
           );
@@ -228,17 +259,17 @@ function EditorPanel({ decorations, onToggleVisibility, onMoveToFront, onMoveToB
         <div className="editor-deco-actions">
           {!isStashed && (
             <>
-              <button className="editor-action-btn" onClick={() => onMoveToFront(dec.id)} title="Move to front">
+              <button className="editor-action-btn" onClick={() => onMoveToFront(dec.uid || dec.id)} title="Move to front">
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 2L7 12M7 2L3 6M7 2L11 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
               </button>
-              <button className="editor-action-btn" onClick={() => onMoveToBack(dec.id)} title="Move to back">
+              <button className="editor-action-btn" onClick={() => onMoveToBack(dec.uid || dec.id)} title="Move to back">
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 12L7 2M7 12L3 8M7 12L11 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
               </button>
             </>
           )}
           <button
             className={`editor-action-btn ${isStashed ? 'restore' : 'stash'}`}
-            onClick={() => onToggleVisibility(dec.id)}
+            onClick={() => onToggleVisibility(dec.uid || dec.id)}
             title={isStashed ? 'Restore to aquarium' : 'Stash'}
           >
             {isStashed ? '👁' : '👁‍🗨'}
@@ -258,11 +289,11 @@ function EditorPanel({ decorations, onToggleVisibility, onMoveToFront, onMoveToB
         {visible.length === 0 && stashed.length === 0 && (
           <div className="editor-empty">No decorations owned yet. Buy some from the market!</div>
         )}
-        {visible.map(dec => <DecoRow key={dec.id} dec={dec} isStashed={false} />)}
+        {visible.map(dec => <DecoRow key={dec.uid || dec.id} dec={dec} isStashed={false} />)}
         {stashed.length > 0 && (
           <>
             <div className="editor-section-label">Stashed</div>
-            {stashed.map(dec => <DecoRow key={dec.id} dec={dec} isStashed={true} />)}
+            {stashed.map(dec => <DecoRow key={dec.uid || dec.id} dec={dec} isStashed={true} />)}
           </>
         )}
       </div>
@@ -291,25 +322,25 @@ export default function Aquarium() {
     return () => chrome.storage.onChanged.removeListener(onChange);
   }, []);
 
-  const moveDecoration = useCallback((id, xPos) => {
+  const moveDecoration = useCallback((uid, xPos) => {
     setDecorations(prev => {
-      const next = prev.map(d => d.id === id ? { ...d, xPos } : d);
+      const next = prev.map(d => (d.uid || d.id) === uid ? { ...d, xPos } : d);
       chrome.storage.local.set({ panelDecorations: next });
       return next;
     });
   }, []);
 
-  const toggleVisibility = useCallback((id) => {
+  const toggleVisibility = useCallback((uid) => {
     setDecorations(prev => {
-      const next = prev.map(d => d.id === id ? { ...d, visible: d.visible === false ? true : false } : d);
+      const next = prev.map(d => (d.uid || d.id) === uid ? { ...d, visible: d.visible === false ? true : false } : d);
       chrome.storage.local.set({ panelDecorations: next });
       return next;
     });
   }, []);
 
-  const moveToFront = useCallback((id) => {
+  const moveToFront = useCallback((uid) => {
     setDecorations(prev => {
-      const idx = prev.findIndex(d => d.id === id);
+      const idx = prev.findIndex(d => (d.uid || d.id) === uid);
       if (idx < 0) return prev;
       const next = [...prev];
       const [item] = next.splice(idx, 1);
@@ -319,9 +350,9 @@ export default function Aquarium() {
     });
   }, []);
 
-  const moveToBack = useCallback((id) => {
+  const moveToBack = useCallback((uid) => {
     setDecorations(prev => {
-      const idx = prev.findIndex(d => d.id === id);
+      const idx = prev.findIndex(d => (d.uid || d.id) === uid);
       if (idx < 0) return prev;
       const next = [...prev];
       const [item] = next.splice(idx, 1);

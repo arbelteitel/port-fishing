@@ -157,6 +157,16 @@ html, body, #root {
   object-position: bottom center;
 }
 
+.tank-decoration-img--wiggle {
+  transform-origin: bottom center;
+  animation: deco-wiggle var(--wiggle-dur, 3.8s) ease-in-out infinite;
+  animation-delay: var(--wiggle-delay, 0s);
+}
+@keyframes deco-wiggle {
+  0%, 100% { transform: rotate(-4deg) scaleX(0.97); }
+  50%       { transform: rotate(4deg)  scaleX(1.03); }
+}
+
 /* Click ripple */
 .tank-ripple {
   position: absolute;
