@@ -4,16 +4,33 @@ import "./sidepanel.css";
 const RARITY_COLORS = { common: "#94a3b8", uncommon: "#22c55e", rare: "#38bdf8", legendary: "#f59e0b" };
 const RARITY_GLOW   = { common: "rgba(148,163,184,0.5)", uncommon: "rgba(34,197,94,0.6)", rare: "rgba(56,189,248,0.6)", legendary: "rgba(245,158,11,0.7)" };
 const RARITY_RANK   = { legendary: 4, rare: 3, uncommon: 2, common: 1 };
+const SELL_PRICES   = { common: 5, uncommon: 15, rare: 40, legendary: 100 };
 const sizeToSpeed   = (size) => 28 / size;
 
 // ── Bait system ───────────────────────────────────────────────────────────────
 
 const BAIT_TYPES = [
-  { id: "worm",    name: "Common Worm",    emoji: "🪱", rarity: "common",    boost: 0,    description: "Gets the job done. Barely." },
-  { id: "lure",    name: "Shiny Lure",     emoji: "🪝", rarity: "uncommon",  boost: 0.2,  description: "Flashy enough to attract better fish." },
-  { id: "golden",  name: "Golden Hook",    emoji: "✨", rarity: "rare",      boost: 0.45, description: "Rare fish find it irresistible." },
-  { id: "chum",    name: "Legendary Chum", emoji: "🌟", rarity: "legendary", boost: 0.75, description: "Dark arts. Almost guarantees something extraordinary." },
+  { id: "worm",    name: "Common Worm",    emoji: "🪱", rarity: "common",    boost: 0,    price: 5,   description: "Gets the job done. Barely." },
+  { id: "lure",    name: "Shiny Lure",     emoji: "🪝", rarity: "uncommon",  boost: 0.2,  price: 20,  description: "Flashy enough to attract better fish." },
+  { id: "golden",  name: "Golden Hook",    emoji: "✨", rarity: "rare",      boost: 0.45, price: 60,  description: "Rare fish find it irresistible." },
+  { id: "chum",    name: "Legendary Chum", emoji: "🌟", rarity: "legendary", boost: 0.75, price: 150, description: "Dark arts. Almost guarantees something extraordinary." },
 ];
+
+// ── Rod system ────────────────────────────────────────────────────────────────
+
+const ROD_TYPES = [
+  { id: "basic",  name: "Basic Rod",   emoji: "🎣", price: 0,   rodBoost: 0,    description: "A trusty rod. Gets the job done." },
+  { id: "silver", name: "Silver Rod",  emoji: "🥈", price: 100, rodBoost: 0.15, description: "Better sensitivity. Improved odds." },
+  { id: "golden", name: "Golden Rod",  emoji: "🏅", price: 300, rodBoost: 0.30, description: "Forged from rare catches. Serious power." },
+];
+
+// ── Decorations ───────────────────────────────────────────────────────────────
+
+const DECORATION_CATALOG = [
+  { id: "ship", name: "Sunken Ship", emoji: "🚢", price: 50, description: "A weathered ship resting on the seafloor." },
+];
+
+// ── Fish helpers ──────────────────────────────────────────────────────────────
 
 function getRarityWeights(boost = 0) {
   return {
@@ -64,24 +81,21 @@ const MOCK_CATCHES = [
 
 // ── Physics aquarium ──────────────────────────────────────────────────────────
 
-function Aquarium({ fish }) {
+function Aquarium({ fish, decorations, onMoveDecoration }) {
   const containerRef = useRef(null);
   const elemsRef     = useRef([]);
   const stateRef     = useRef([]);
   const rafRef       = useRef(null);
 
-  // Init physics — only spawn state for NEW fish IDs, never reset existing ones
   const fishIds = fish.map(f => f.id).join(",");
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
     const W = el.clientWidth;
     const H = el.clientHeight;
-
     const existingById = Object.fromEntries(stateRef.current.map(s => [s.id, s]));
-
     stateRef.current = fish.map((f) => {
-      if (existingById[f.id]) return existingById[f.id]; // keep existing state untouched
+      if (existingById[f.id]) return existingById[f.id];
       const spd   = sizeToSpeed(f.size);
       const angle = Math.random() * Math.PI * 2;
       const vx0   = Math.cos(angle) * spd;
@@ -104,75 +118,49 @@ function Aquarium({ fish }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fishIds]);
 
-  // RAF loop
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
-
     const MARGIN     = 16;
-    const WALL_RANGE = 48;  // soft repulsion zone near walls
+    const WALL_RANGE = 48;
     const WALL_FORCE = 0.12;
 
     function tick() {
       const W = container.clientWidth;
       const H = container.clientHeight;
-
       stateRef.current.forEach((s, i) => {
-        // 1. Sinusoidal speed cycle — gives organic rhythm
         s.bobPhase += 0.028;
-        const speedMod   = 1 + Math.sin(s.bobPhase) * 0.28;
-        const targetSpd  = s.baseSpeed * speedMod;
-
-        // 2. Continuous wander: rotate velocity vector by a small random angle each frame
-        //    This produces smooth curved paths instead of straight lines
+        const speedMod  = 1 + Math.sin(s.bobPhase) * 0.28;
+        const targetSpd = s.baseSpeed * speedMod;
         const wanderAngle = (Math.random() - 0.5) * s.wanderStrength;
         const cosW = Math.cos(wanderAngle), sinW = Math.sin(wanderAngle);
         const wvx = s.vx * cosW - s.vy * sinW;
         const wvy = s.vx * sinW + s.vy * cosW;
-        s.vx = wvx;
-        s.vy = wvy;
-
-        // 3. Normalize to sinusoidal target speed
+        s.vx = wvx; s.vy = wvy;
         const spd = Math.sqrt(s.vx * s.vx + s.vy * s.vy) || 1;
         s.vx = (s.vx / spd) * targetSpd;
         s.vy = (s.vy / spd) * targetSpd;
-
-        // 4. Soft wall repulsion — fish curve away before hitting walls
         if (s.x < WALL_RANGE)     s.vx += WALL_FORCE * (1 - s.x / WALL_RANGE);
         if (s.x > W - WALL_RANGE) s.vx -= WALL_FORCE * (1 - (W - s.x) / WALL_RANGE);
         if (s.y < WALL_RANGE)     s.vy += WALL_FORCE * (1 - s.y / WALL_RANGE);
         if (s.y > H - WALL_RANGE) s.vy -= WALL_FORCE * (1 - (H - s.y) / WALL_RANGE);
-
-        // 5. Apply and decay flee impulse
         if (s.fleeTtl > 0) {
-          s.vx     += s.fleeVx;
-          s.vy     += s.fleeVy;
-          s.fleeVx *= 0.88;
-          s.fleeVy *= 0.88;
+          s.vx += s.fleeVx; s.vy += s.fleeVy;
+          s.fleeVx *= 0.88; s.fleeVy *= 0.88;
           s.fleeTtl--;
         }
-
-        // 6. Move
-        s.x += s.vx;
-        s.y += s.vy;
-
-        // 7. Hard clamp as fallback (shouldn't be visible with soft repulsion)
+        s.x += s.vx; s.y += s.vy;
         if (s.x < MARGIN)     { s.x = MARGIN;     s.vx =  Math.abs(s.vx); }
         if (s.x > W - MARGIN) { s.x = W - MARGIN; s.vx = -Math.abs(s.vx); }
         if (s.y < MARGIN)     { s.y = MARGIN;      s.vy =  Math.abs(s.vy); }
         if (s.y > H - MARGIN) { s.y = H - MARGIN;  s.vy = -Math.abs(s.vy); }
-
-        // 8. Direction hysteresis — only flip facing after a cooldown to prevent rapid jitter
         if (s.flipCooldown > 0) {
           s.flipCooldown--;
         } else if ((s.vx > 0) !== s.faceRight) {
           s.faceRight    = s.vx > 0;
           s.flipCooldown = 45;
         }
-
-        // 9. Visual tail-wag: tiny sinusoidal y offset on top of physics
         const wagOffset = Math.sin(s.bobPhase * 1.8) * 2;
-
         const el = elemsRef.current[i];
         if (el) {
           el.style.left      = `${s.x}px`;
@@ -180,10 +168,8 @@ function Aquarium({ fish }) {
           el.style.transform = `translate(-50%,-50%) scaleX(${s.faceRight ? 1 : -1})`;
         }
       });
-
       rafRef.current = requestAnimationFrame(tick);
     }
-
     rafRef.current = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(rafRef.current);
   }, [fish]);
@@ -193,29 +179,41 @@ function Aquarium({ fish }) {
     const clickX = e.clientX - rect.left;
     const clickY = e.clientY - rect.top;
     const diag   = Math.sqrt(rect.width ** 2 + rect.height ** 2);
-
-    // Ripple effect at click point
     const ripple = document.createElement("div");
     ripple.className = "tank-ripple";
     ripple.style.left = `${clickX}px`;
     ripple.style.top  = `${clickY}px`;
     containerRef.current.appendChild(ripple);
     setTimeout(() => ripple.remove(), 600);
-
     stateRef.current.forEach((s) => {
       const dx   = s.x - clickX;
       const dy   = s.y - clickY;
       const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-
-      // Closer = stronger impulse; farther = weaker (but always some reaction)
       const strength = Math.max(0.3, 1 - dist / diag) * s.baseSpeed * 5;
       const angle    = Math.atan2(dy, dx);
-      // Store as impulse - decays over fleeTtl frames
       s.fleeVx  = Math.cos(angle) * strength * 0.25;
       s.fleeVy  = Math.sin(angle) * strength * 0.25;
       s.fleeTtl = 28;
     });
   }, []);
+
+  function handleDecoDragStart(e, decId) {
+    e.stopPropagation();
+    const tank = containerRef.current;
+    if (!tank) return;
+    const rect = tank.getBoundingClientRect();
+
+    function onMove(ev) {
+      const x = ((ev.clientX - rect.left) / rect.width) * 100;
+      onMoveDecoration(decId, Math.max(5, Math.min(92, x)));
+    }
+    function onUp() {
+      document.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseup", onUp);
+    }
+    document.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseup", onUp);
+  }
 
   return (
     <div className="tank" ref={containerRef} onClick={handleClick}>
@@ -231,10 +229,7 @@ function Aquarium({ fish }) {
           key={f.id}
           ref={el => elemsRef.current[i] = el}
           className="tank-fish"
-          style={{
-            fontSize: `${f.size}px`,
-            filter: `drop-shadow(0 0 10px ${RARITY_GLOW[f.rarity]})`,
-          }}
+          style={{ fontSize: `${f.size}px`, filter: `drop-shadow(0 0 10px ${RARITY_GLOW[f.rarity]})` }}
           title={`${f.name} · ${f.rarity}`}
         >
           {f.emoji}
@@ -245,6 +240,18 @@ function Aquarium({ fish }) {
         <div className="seaweed" style={{ left: "8%",  height: 30, animationDelay: "0s" }} />
         <div className="seaweed" style={{ left: "40%", height: 22, animationDelay: "-1.2s" }} />
         <div className="seaweed" style={{ right: "12%",height: 36, animationDelay: "-2.1s" }} />
+
+        {decorations.map(dec => (
+          <div
+            key={dec.id}
+            className="tank-decoration"
+            style={{ left: `${dec.xPos}%` }}
+            onMouseDown={e => handleDecoDragStart(e, dec.id)}
+            title={`${dec.name} — drag to reposition`}
+          >
+            {dec.emoji}
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -281,8 +288,6 @@ function FishingScene({ boost = 0, onDone }) {
     splash: '',
   }[phase];
 
-  // SVG line: from rod tip (upper right) to bobber (water center)
-  // Rod is at top:13% right:13% → tip ≈ (75%, 20%), bobber at (50%, 57%)
   const showLine = phase !== 'cast';
 
   return (
@@ -300,7 +305,6 @@ function FishingScene({ boost = 0, onDone }) {
       </div>
 
       <div className="scene-moon-reflect" />
-
       <div className={`scene-rod ${phase}`}>🎣</div>
 
       {showLine && (
@@ -395,16 +399,250 @@ function CatchReveal({ fish, onDismiss }) {
   );
 }
 
+// ── Bag menu ──────────────────────────────────────────────────────────────────
+
+function BagMenu({ inventory, selectedBait, equippedRod, ownedRodIds, onSelectBait, onSelectRod, onClose, closing, onClosed }) {
+  const [view, setView] = useState("main");
+
+  return (
+    <>
+      <div className={`bait-sheet-backdrop${closing ? ' closing' : ''}`} onClick={onClose} />
+      <div className={`bait-sheet bag-sheet${closing ? ' closing' : ''}`} onAnimationEnd={closing ? onClosed : undefined}>
+        <div className="bait-sheet-handle" />
+        <div className="bait-sheet-title">
+          {view === "main" && "🎒 Loadout"}
+          {view === "rod"  && "Select Rod"}
+          {view === "bait" && "Select Bait"}
+        </div>
+
+        {view === "main" && (
+          <>
+            <div className="bag-row" onClick={() => setView("rod")}>
+              <span className="bag-row-icon">{equippedRod.emoji}</span>
+              <div className="bag-row-info">
+                <div className="bag-row-label">Rod</div>
+                <div className="bag-row-name">{equippedRod.name}</div>
+              </div>
+              <span className="bag-row-change">Change →</span>
+            </div>
+            <div className="bag-row" onClick={() => setView("bait")}>
+              <span className="bag-row-icon">{selectedBait.emoji}</span>
+              <div className="bag-row-info">
+                <div className="bag-row-label">Bait</div>
+                <div className="bag-row-name">{selectedBait.name} <span className="bag-row-count">({inventory.find(b => b.id === selectedBait.id)?.count ?? 0}x)</span></div>
+              </div>
+              <span className="bag-row-change">Change →</span>
+            </div>
+          </>
+        )}
+
+        {view === "rod" && ROD_TYPES.filter(r => ownedRodIds.has(r.id)).map(rod => {
+          const sel = equippedRod.id === rod.id;
+          return (
+            <div key={rod.id} className={`bait-option${sel ? ' selected' : ''}`} onClick={() => { onSelectRod(rod); setView("main"); onClose(); }}>
+              <span className="bait-option-emoji">{rod.emoji}</span>
+              <div className="bait-option-info">
+                <div className="bait-option-name">{rod.name}</div>
+                <div className="bait-option-desc">{rod.description}</div>
+                <div className="bait-odds-row">
+                  <span className="odds-chip rare">+{Math.round(rod.rodBoost * 100)}% odds boost</span>
+                </div>
+              </div>
+              <div className="bait-option-right">
+                {sel && <span className="bait-option-check">✓</span>}
+              </div>
+            </div>
+          );
+        })}
+
+        {view === "bait" && inventory.map(bait => {
+          const odds  = oddsPercent(bait.boost);
+          const empty = bait.count === 0;
+          const sel   = selectedBait?.id === bait.id;
+          return (
+            <div
+              key={bait.id}
+              className={`bait-option${sel ? ' selected' : ''}${empty ? ' empty' : ''}`}
+              onClick={() => { if (!empty) { onSelectBait(bait); setView("main"); onClose(); } }}
+            >
+              <span className="bait-option-emoji">{bait.emoji}</span>
+              <div className="bait-option-info">
+                <div className="bait-option-name">{bait.name}</div>
+                <div className="bait-option-desc">{bait.description}</div>
+                <div className="bait-odds-row">
+                  {['common','uncommon','rare','legendary'].map(r => (
+                    <span key={r} className={`odds-chip ${r}`}>{odds[r]}%</span>
+                  ))}
+                </div>
+              </div>
+              <div className="bait-option-right">
+                <span className="bait-option-count">{bait.count}x</span>
+                {sel && <span className="bait-option-check">✓</span>}
+              </div>
+            </div>
+          );
+        })}
+
+        {view !== "main" && (
+          <button className="bag-back-btn" onClick={() => setView("main")}>← Back</button>
+        )}
+      </div>
+    </>
+  );
+}
+
+// ── Market ────────────────────────────────────────────────────────────────────
+
+const MARKET_TABS = [
+  { id: "fish",  label: "Fish Market", emoji: "🐟" },
+  { id: "baits", label: "Baits",       emoji: "🪱" },
+  { id: "rods",  label: "Rods",        emoji: "🎣" },
+  { id: "decos", label: "Decorations", emoji: "🏚️" },
+];
+
+function Market({ catches, inventory, goldCoins, ownedRodIds, ownedDecorations, onClose, onSellFish, onBuyBait, onBuyRod, onBuyDecoration }) {
+  const [tab, setTab] = useState("fish");
+
+  return (
+    <div className="market-overlay">
+      <div className="market-modal">
+        <div className="market-header">
+          <div className="market-title">🏪 Market</div>
+          <div className="market-gold">🪙 {goldCoins}</div>
+          <button className="market-close" onClick={onClose}>✕</button>
+        </div>
+
+        <div className="market-tabs">
+          {MARKET_TABS.map(t => (
+            <button key={t.id} className={`market-tab${tab === t.id ? ' active' : ''}`} onClick={() => setTab(t.id)}>
+              <span>{t.emoji}</span>
+              <span>{t.label}</span>
+            </button>
+          ))}
+        </div>
+
+        <div className="market-content">
+          {tab === "fish" && (
+            catches.length === 0
+              ? <div className="market-empty">No fish to sell. Go fishing first!</div>
+              : catches.map(fish => (
+                <div key={fish.id} className="market-row">
+                  <span className="market-row-emoji">{fish.emoji}</span>
+                  <div className="market-row-info">
+                    <div className="market-row-name">{fish.name}</div>
+                    <div className="market-row-rarity" style={{ color: RARITY_COLORS[fish.rarity] }}>{fish.rarity}</div>
+                  </div>
+                  <button className="market-sell-btn" onClick={() => onSellFish(fish)}>
+                    Sell · 🪙 {SELL_PRICES[fish.rarity]}
+                  </button>
+                </div>
+              ))
+          )}
+
+          {tab === "baits" && BAIT_TYPES.map(bait => {
+            const owned = inventory.find(b => b.id === bait.id)?.count ?? 0;
+            const canAfford = goldCoins >= bait.price;
+            return (
+              <div key={bait.id} className="market-row">
+                <span className="market-row-emoji">{bait.emoji}</span>
+                <div className="market-row-info">
+                  <div className="market-row-name">{bait.name}</div>
+                  <div className="market-row-desc">{bait.description}</div>
+                  <div className="market-row-stock">In bag: {owned}x</div>
+                </div>
+                <button
+                  className={`market-buy-btn${!canAfford ? ' disabled' : ''}`}
+                  onClick={() => canAfford && onBuyBait(bait)}
+                  disabled={!canAfford}
+                >
+                  🪙 {bait.price}
+                </button>
+              </div>
+            );
+          })}
+
+          {tab === "rods" && ROD_TYPES.map(rod => {
+            const owned = ownedRodIds.has(rod.id);
+            const canAfford = goldCoins >= rod.price;
+            return (
+              <div key={rod.id} className="market-row">
+                <span className="market-row-emoji">{rod.emoji}</span>
+                <div className="market-row-info">
+                  <div className="market-row-name">{rod.name}</div>
+                  <div className="market-row-desc">{rod.description}</div>
+                  <div className="market-row-stock">+{Math.round(rod.rodBoost * 100)}% odds boost</div>
+                </div>
+                {owned
+                  ? <span className="market-owned-badge">Owned</span>
+                  : (
+                    <button
+                      className={`market-buy-btn${!canAfford ? ' disabled' : ''}`}
+                      onClick={() => canAfford && onBuyRod(rod)}
+                      disabled={!canAfford}
+                    >
+                      🪙 {rod.price}
+                    </button>
+                  )
+                }
+              </div>
+            );
+          })}
+
+          {tab === "decos" && DECORATION_CATALOG.map(dec => {
+            const owned = ownedDecorations.some(d => d.id === dec.id);
+            const canAfford = goldCoins >= dec.price;
+            return (
+              <div key={dec.id} className="market-row">
+                <span className="market-row-emoji">{dec.emoji}</span>
+                <div className="market-row-info">
+                  <div className="market-row-name">{dec.name}</div>
+                  <div className="market-row-desc">{dec.description}</div>
+                  {owned && <div className="market-row-stock">Placed in your aquarium</div>}
+                </div>
+                {owned
+                  ? <span className="market-owned-badge">Owned</span>
+                  : (
+                    <button
+                      className={`market-buy-btn${!canAfford ? ' disabled' : ''}`}
+                      onClick={() => canAfford && onBuyDecoration(dec)}
+                      disabled={!canAfford}
+                    >
+                      🪙 {dec.price}
+                    </button>
+                  )
+                }
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Main panel ────────────────────────────────────────────────────────────────
 
 export default function SidePanel() {
   const [catches, setCatches]           = useState(MOCK_CATCHES);
   const [inventory, setInventory]       = useState(MOCK_BAIT_INVENTORY);
   const [selectedBait, setSelectedBait] = useState(() => MOCK_BAIT_INVENTORY.find(b => b.count > 0) || MOCK_BAIT_INVENTORY[0]);
-  const [showBaitMenu, setShowBaitMenu]     = useState(false);
+  const [showBaitMenu, setShowBaitMenu]       = useState(false);
   const [baitMenuClosing, setBaitMenuClosing] = useState(false);
   const [fishing, setFishing]           = useState(false);
   const [catchResult, setCatchResult]   = useState(null);
+
+  // Economy & gear
+  const [goldCoins, setGoldCoins]         = useState(120);
+  const [equippedRod, setEquippedRod]     = useState(ROD_TYPES[0]);
+  const [ownedRodIds, setOwnedRodIds]     = useState(() => new Set(["basic"]));
+  const [ownedDecorations, setOwnedDecorations] = useState([]);
+
+  // Market
+  const [showMarket, setShowMarket] = useState(false);
+
+  // Bag
+  const [showBag, setShowBag]       = useState(false);
+  const [bagClosing, setBagClosing] = useState(false);
 
   const baitCount = inventory.reduce((a, b) => a + b.count, 0);
   const caughtIds = new Set(catches.map(f => f.id));
@@ -412,6 +650,8 @@ export default function SidePanel() {
   const activeBait = inventory.find(b => b.id === selectedBait?.id && b.count > 0)
                   || inventory.find(b => b.count > 0)
                   || BAIT_TYPES[0];
+
+  const totalBoost = Math.min(0.9, activeBait.boost + equippedRod.rodBoost);
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -441,10 +681,67 @@ export default function SidePanel() {
     setCatchResult({ ...fish, isNew });
   }
 
+  // Market handlers
+  function sellFish(fish) {
+    setCatches(prev => prev.filter(f => f.id !== fish.id));
+    setGoldCoins(g => g + SELL_PRICES[fish.rarity]);
+  }
+
+  function buyBait(bait) {
+    if (goldCoins < bait.price) return;
+    setGoldCoins(g => g - bait.price);
+    setInventory(inv => inv.map(b => b.id === bait.id ? { ...b, count: b.count + 1 } : b));
+  }
+
+  function buyRod(rod) {
+    if (goldCoins < rod.price || ownedRodIds.has(rod.id)) return;
+    setGoldCoins(g => g - rod.price);
+    setOwnedRodIds(s => new Set([...s, rod.id]));
+  }
+
+  function buyDecoration(dec) {
+    if (goldCoins < dec.price || ownedDecorations.some(d => d.id === dec.id)) return;
+    setGoldCoins(g => g - dec.price);
+    setOwnedDecorations(prev => [...prev, { ...dec, xPos: 50 }]);
+  }
+
+  function moveDecoration(id, xPos) {
+    setOwnedDecorations(prev => prev.map(d => d.id === id ? { ...d, xPos } : d));
+  }
+
+  function closeBag() { setBagClosing(true); }
+
   return (
     <div className="panel">
-      {fishing     && <FishingScene boost={activeBait.boost} onDone={onSceneDone} />}
+      {fishing     && <FishingScene boost={totalBoost} onDone={onSceneDone} />}
       {catchResult && <CatchReveal fish={catchResult} onDismiss={() => setCatchResult(null)} />}
+      {showMarket  && (
+        <Market
+          catches={catches}
+          inventory={inventory}
+          goldCoins={goldCoins}
+          ownedRodIds={ownedRodIds}
+          ownedDecorations={ownedDecorations}
+          onClose={() => setShowMarket(false)}
+          onSellFish={sellFish}
+          onBuyBait={buyBait}
+          onBuyRod={buyRod}
+          onBuyDecoration={buyDecoration}
+        />
+      )}
+      {showBag && (
+        <BagMenu
+          inventory={inventory}
+          selectedBait={selectedBait}
+          equippedRod={equippedRod}
+          ownedRodIds={ownedRodIds}
+          onSelectBait={setSelectedBait}
+          onSelectRod={setEquippedRod}
+          onClose={closeBag}
+          closing={bagClosing}
+          onClosed={() => { setShowBag(false); setBagClosing(false); }}
+        />
+      )}
       {showBaitMenu && (
         <BaitInventory
           inventory={inventory}
@@ -464,10 +761,18 @@ export default function SidePanel() {
             <div className="header-sub">⚓ FISHER</div>
           </div>
         </div>
-        <div className="bait-chip" onClick={() => setShowBaitMenu(true)}>
-          <span className="bait-num">{baitCount}</span>
-          <span>{activeBait.emoji}</span>
-          <span className="bait-label">baits</span>
+        <div className="header-actions">
+          <div className="gold-chip">
+            <span className="gold-icon">🪙</span>
+            <span className="gold-num">{goldCoins}</span>
+          </div>
+          <button className="icon-btn" onClick={() => setShowBag(true)} title="Loadout">🎒</button>
+          <button className="icon-btn market-btn" onClick={() => setShowMarket(true)} title="Market">🏪</button>
+          <div className="bait-chip" onClick={() => setShowBaitMenu(true)}>
+            <span className="bait-num">{baitCount}</span>
+            <span>{activeBait.emoji}</span>
+            <span className="bait-label">baits</span>
+          </div>
         </div>
       </header>
 
@@ -482,7 +787,7 @@ export default function SidePanel() {
         </button>
       </div>
 
-      <Aquarium fish={top10} />
+      <Aquarium fish={top10} decorations={ownedDecorations} onMoveDecoration={moveDecoration} />
     </div>
   );
 }
