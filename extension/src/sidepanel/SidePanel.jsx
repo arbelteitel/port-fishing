@@ -813,18 +813,17 @@ export default function SidePanel() {
         <button
           className={`fish-btn ${baitCount === 0 ? "empty" : ""}`}
           onClick={goFish}
-          disabled={baitCount === 0 || fishing}
+          disabled={baitCount === 0 || activeCasts.length >= 4}
         >
           <img className="fish-btn-icon item-art" src={comboImg(equippedRod.id, activeBait.id)} alt="" />
           <span className="fish-btn-label">{baitCount === 0 ? "No bait" : "Fish!"}</span>
         </button>
       </div>
 
-      {fishing && (
-        <FishingScene
-          boost={totalBoost}
-          baitId={activeBait.id}
-          onDone={onSceneDone}
+      {activeCasts.length > 0 && (
+        <FishingOverlay
+          casts={activeCasts}
+          onCatch={onBaitCaught}
         />
       )}
 
