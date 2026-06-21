@@ -53,9 +53,8 @@ html, body, #root {
   overflow: hidden;
   background-color: #0b6ea3;
   background-image: url("/backgrounds/background_3.png");
-  background-repeat: repeat;
-  background-size: 336px auto;
-  image-rendering: pixelated;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
   cursor: crosshair;
 }
 

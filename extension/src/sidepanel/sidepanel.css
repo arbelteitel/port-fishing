@@ -5,6 +5,140 @@ html, body, #root {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
+/* ── Theme tokens (light defaults) ─────────────────────────────────────── */
+:root {
+  --panel-bg: linear-gradient(160deg, #e0f2fe 0%, #bae6fd 40%, #7dd3fc 100%);
+  --header-bg: rgba(255,255,255,0.55);
+  --header-border: rgba(255,255,255,0.7);
+  --header-title: #0369a1;
+  --header-sub: #7dd3fc;
+  --inv-bg: rgba(255,255,255,0.25);
+  --inv-border: rgba(255,255,255,0.45);
+  --btn-section-bg: rgba(255,255,255,0.25);
+  --sheet-bg: #fff;
+  --sheet-handle: #e2e8f0;
+  --sheet-title: #0369a1;
+  --sheet-sep: #f1f5f9;
+  --option-hover: #f8fafc;
+  --option-selected: #eff6ff;
+  --option-name: #1e293b;
+  --option-desc: #64748b;
+  --option-cnt-bg: #f1f5f9;
+  --option-cnt-color: #64748b;
+  --option-cnt-sel-bg: #dbeafe;
+  --option-cnt-sel-color: #1d4ed8;
+  --chip-common-bg: #f1f5f9;
+  --chip-common-color: #64748b;
+  --bag-sep: rgba(0,0,0,0.06);
+  --bag-hover: rgba(14,165,233,0.06);
+  --bag-label: #94a3b8;
+  --bag-name: #0f172a;
+  --bag-cnt: #64748b;
+  --bag-change: #0ea5e9;
+  --back-bg: rgba(0,0,0,0.04);
+  --back-border: rgba(0,0,0,0.08);
+  --back-color: #475569;
+  --back-hover: rgba(0,0,0,0.08);
+  --icon-btn-bg: rgba(255,255,255,0.6);
+  --icon-btn-hover: rgba(255,255,255,0.85);
+  --inv-total-color: #0369a1;
+  --inv-total-label: #64748b;
+  --history-border: rgba(0,0,0,0.07);
+  --history-rarity: rgba(0,0,0,0.4);
+  --history-time: rgba(0,0,0,0.38);
+  --history-empty: rgba(0,0,0,0.4);
+}
+
+/* ── Dark tokens — system preference ───────────────────────────────────── */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --panel-bg: linear-gradient(160deg, #0c1a2e 0%, #0a1628 40%, #091220 100%);
+    --header-bg: rgba(0,0,0,0.4);
+    --header-border: rgba(255,255,255,0.08);
+    --header-title: #7dd3fc;
+    --header-sub: #38bdf8;
+    --inv-bg: rgba(0,0,0,0.25);
+    --inv-border: rgba(255,255,255,0.07);
+    --btn-section-bg: rgba(0,0,0,0.2);
+    --sheet-bg: #0f1e30;
+    --sheet-handle: rgba(255,255,255,0.15);
+    --sheet-title: #38bdf8;
+    --sheet-sep: rgba(255,255,255,0.07);
+    --option-hover: rgba(255,255,255,0.04);
+    --option-selected: rgba(14,165,233,0.12);
+    --option-name: #e2e8f0;
+    --option-desc: #64748b;
+    --option-cnt-bg: rgba(255,255,255,0.08);
+    --option-cnt-color: #94a3b8;
+    --option-cnt-sel-bg: rgba(14,165,233,0.2);
+    --option-cnt-sel-color: #38bdf8;
+    --chip-common-bg: rgba(255,255,255,0.08);
+    --chip-common-color: #94a3b8;
+    --bag-sep: rgba(255,255,255,0.06);
+    --bag-hover: rgba(14,165,233,0.08);
+    --bag-label: #475569;
+    --bag-name: #e2e8f0;
+    --bag-cnt: #94a3b8;
+    --bag-change: #38bdf8;
+    --back-bg: rgba(255,255,255,0.06);
+    --back-border: rgba(255,255,255,0.1);
+    --back-color: #94a3b8;
+    --back-hover: rgba(255,255,255,0.1);
+    --icon-btn-bg: rgba(255,255,255,0.1);
+    --icon-btn-hover: rgba(255,255,255,0.18);
+    --inv-total-color: #7dd3fc;
+    --inv-total-label: #94a3b8;
+    --history-border: rgba(255,255,255,0.06);
+    --history-rarity: rgba(255,255,255,0.45);
+    --history-time: rgba(255,255,255,0.4);
+    --history-empty: rgba(255,255,255,0.4);
+  }
+}
+
+/* ── Dark tokens — manual override ─────────────────────────────────────── */
+[data-theme="dark"] {
+  --panel-bg: linear-gradient(160deg, #0c1a2e 0%, #0a1628 40%, #091220 100%);
+  --header-bg: rgba(0,0,0,0.4);
+  --header-border: rgba(255,255,255,0.08);
+  --header-title: #7dd3fc;
+  --header-sub: #38bdf8;
+  --inv-bg: rgba(0,0,0,0.25);
+  --inv-border: rgba(255,255,255,0.07);
+  --btn-section-bg: rgba(0,0,0,0.2);
+  --sheet-bg: #0f1e30;
+  --sheet-handle: rgba(255,255,255,0.15);
+  --sheet-title: #38bdf8;
+  --sheet-sep: rgba(255,255,255,0.07);
+  --option-hover: rgba(255,255,255,0.04);
+  --option-selected: rgba(14,165,233,0.12);
+  --option-name: #e2e8f0;
+  --option-desc: #64748b;
+  --option-cnt-bg: rgba(255,255,255,0.08);
+  --option-cnt-color: #94a3b8;
+  --option-cnt-sel-bg: rgba(14,165,233,0.2);
+  --option-cnt-sel-color: #38bdf8;
+  --chip-common-bg: rgba(255,255,255,0.08);
+  --chip-common-color: #94a3b8;
+  --bag-sep: rgba(255,255,255,0.06);
+  --bag-hover: rgba(14,165,233,0.08);
+  --bag-label: #475569;
+  --bag-name: #e2e8f0;
+  --bag-cnt: #94a3b8;
+  --bag-change: #38bdf8;
+  --back-bg: rgba(255,255,255,0.06);
+  --back-border: rgba(255,255,255,0.1);
+  --back-color: #94a3b8;
+  --back-hover: rgba(255,255,255,0.1);
+  --icon-btn-bg: rgba(255,255,255,0.1);
+  --icon-btn-hover: rgba(255,255,255,0.18);
+  --inv-total-color: #7dd3fc;
+  --inv-total-label: #94a3b8;
+  --history-border: rgba(255,255,255,0.06);
+  --history-rarity: rgba(255,255,255,0.45);
+  --history-time: rgba(255,255,255,0.4);
+  --history-empty: rgba(255,255,255,0.4);
+}
+
 /* ── Fishing scene — floating overlay card ──────────────────────────────────── */
 .fs-overlay {
   position: absolute; inset: 0; z-index: 10;
@@ -218,7 +352,7 @@ html, body, #root {
 }
 .bait-sheet {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 61;
-  background: #fff;
+  background: var(--sheet-bg);
   border-radius: 20px 20px 0 0;
   padding: 0 0 28px;
   overflow-y: auto;
@@ -237,23 +371,23 @@ html, body, #root {
 }
 .bait-sheet-handle::after {
   content: ''; width: 36px; height: 4px;
-  background: #e2e8f0; border-radius: 2px;
+  background: var(--sheet-handle); border-radius: 2px;
 }
 .bait-sheet-title {
   padding: 4px 20px 12px;
-  font-size: 13px; font-weight: 800; color: #0369a1;
+  font-size: 13px; font-weight: 800; color: var(--sheet-title);
   text-transform: uppercase; letter-spacing: 0.6px;
 }
 .bait-option {
   display: flex; align-items: center; gap: 12px;
   padding: 13px 20px;
-  border-top: 1px solid #f1f5f9;
+  border-top: 1px solid var(--sheet-sep);
   cursor: pointer;
   transition: background 0.12s ease;
   position: relative;
 }
-.bait-option:hover:not(.empty) { background: #f8fafc; }
-.bait-option.selected { background: #eff6ff; }
+.bait-option:hover:not(.empty) { background: var(--option-hover); }
+.bait-option.selected { background: var(--option-selected); }
 .bait-option.empty    { opacity: 0.38; cursor: default; }
 .bait-option-emoji { font-size: 30px; flex-shrink: 0; }
 .bait-option-info  { flex: 1; min-width: 0; }
@@ -284,7 +418,7 @@ html, body, #root {
   flex-direction: column;
   height: 100vh;
   overflow: hidden;
-  background: linear-gradient(160deg, #e0f2fe 0%, #bae6fd 40%, #7dd3fc 100%);
+  background: var(--panel-bg);
 }
 
 /* ── Header ──────────────────────────────────────────────────────────────────── */
@@ -293,9 +427,9 @@ html, body, #root {
   align-items: center;
   justify-content: space-between;
   padding: 10px 12px;
-  background: rgba(255,255,255,0.55);
+  background: var(--header-bg);
   backdrop-filter: blur(16px);
-  border-bottom: 1px solid rgba(255,255,255,0.7);
+  border-bottom: 1px solid var(--header-border);
   flex-shrink: 0;
   min-width: 0;
   overflow: hidden;
@@ -304,8 +438,8 @@ html, body, #root {
 
 .header-brand  { display: flex; align-items: center; gap: 8px; flex-shrink: 1; min-width: 0; overflow: hidden; }
 .header-logo   { width: 34px; height: 34px; flex-shrink: 0; }
-.header-title  { font-size: 15px; font-weight: 800; color: #0369a1; letter-spacing: -0.3px; white-space: nowrap; }
-.header-sub    { font-size: 10px; color: #7dd3fc; font-weight: 600; margin-top: 1px; white-space: nowrap; }
+.header-title  { font-size: 15px; font-weight: 800; color: var(--header-title); letter-spacing: -0.3px; white-space: nowrap; }
+.header-sub    { font-size: 10px; color: var(--header-sub); font-weight: 600; margin-top: 1px; white-space: nowrap; }
 
 .bait-chip {
   display: flex; align-items: center; gap: 4px;
@@ -323,8 +457,8 @@ html, body, #root {
   align-items: center;
   gap: 7px;
   padding: 10px 18px;
-  background: rgba(255,255,255,0.25);
-  border-bottom: 1px solid rgba(255,255,255,0.45);
+  background: var(--inv-bg);
+  border-bottom: 1px solid var(--inv-border);
   flex-shrink: 0;
   flex-wrap: wrap;
 }
@@ -364,13 +498,13 @@ html, body, #root {
 .inv-total-num {
   font-size: 18px;
   font-weight: 900;
-  color: #0369a1;
+  color: var(--inv-total-color);
   line-height: 1;
 }
 
 .inv-total-label {
   font-size: 9px;
-  color: #64748b;
+  color: var(--inv-total-label);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   font-weight: 700;
@@ -383,7 +517,7 @@ html, body, #root {
   align-items: center;
   padding: 24px 0 20px;
   flex-shrink: 0;
-  background: rgba(255,255,255,0.25);
+  background: var(--btn-section-bg);
 }
 
 .fish-btn {
@@ -502,9 +636,8 @@ html, body, #root {
   overflow: hidden;
   background-color: #0b6ea3;
   background-image: url("/backgrounds/background_3.png");
-  background-repeat: repeat;
-  background-size: 224px auto;
-  image-rendering: pixelated;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
   border-top: 3px solid rgba(255,255,255,0.4);
 }
 
@@ -800,6 +933,19 @@ html, body, #root {
 .market-buy-btn:active { transform: scale(0.96); }
 .market-buy-btn.disabled { opacity: 0.35; cursor: not-allowed; }
 .market-buy-btn.disabled:hover { transform: none; box-shadow: 0 2px 8px rgba(14,165,233,0.3); }
+
+/* ── Market toast ──────────────────────────────────────────────────────────── */
+.market-toast {
+  margin: 0 16px 10px;
+  padding: 8px 14px; border-radius: 10px;
+  background: rgba(34,197,94,0.18); border: 1px solid rgba(34,197,94,0.35);
+  color: #4ade80; font-size: 12px; font-weight: 700; text-align: center;
+  animation: market-toast-in 0.2s ease;
+}
+@keyframes market-toast-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
 
 /* ── Bulk buy stepper ──────────────────────────────────────────────────────── */
 .market-buy-ctrl {
