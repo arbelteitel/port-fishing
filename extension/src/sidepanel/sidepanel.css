@@ -7,12 +7,15 @@ html, body, #root {
 
 /* ── Fishing scene — floating overlay card ──────────────────────────────────── */
 .fs-overlay {
-  position: fixed; inset: 0; z-index: 50;
-  display: flex; align-items: center; justify-content: center;
-  background: rgba(0,20,40,0.55);
-  backdrop-filter: blur(6px);
-  animation: fs-overlay-in 0.3s ease;
+  position: absolute; inset: 0; z-index: 10;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 10px;
+  padding: 16px;
   pointer-events: none;
+  background: rgba(0,20,40,0.55);
+  backdrop-filter: blur(3px);
+  animation: fs-overlay-in 0.3s ease;
 }
 @keyframes fs-overlay-in {
   from { opacity: 0; }
@@ -24,6 +27,7 @@ html, body, #root {
   border-radius: 24px;
   position: relative;
   overflow: hidden;
+  flex-shrink: 0;
   box-shadow:
     0 20px 60px rgba(0,0,0,0.4),
     0 0 0 1px rgba(255,255,255,0.1),
@@ -35,26 +39,23 @@ html, body, #root {
   100% { transform: scale(1) translateY(0); opacity: 1; }
 }
 
-/* Bait row inside the card */
-.fs-bait-row {
+/* Bait field - absolute positioning area */
+.fs-bait-field {
   position: absolute; inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 0 16px;
   z-index: 2;
 }
 
 .fs-bob-slot {
+  position: absolute;
+  transform: translate(-50%, -50%);
   display: flex;
   flex-direction: column;
   align-items: center;
   animation: fs-slot-in 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 @keyframes fs-slot-in {
-  0%   { transform: scale(0) translateY(20px); opacity: 0; }
-  100% { transform: scale(1) translateY(0); opacity: 1; }
+  0%   { transform: translate(-50%, -50%) scale(0) translateY(20px); opacity: 0; }
+  100% { transform: translate(-50%, -50%) scale(1) translateY(0); opacity: 1; }
 }
 
 /* Caught fish in slot */
@@ -136,20 +137,6 @@ html, body, #root {
   100% { transform: translateY(0) rotate(0deg) scale(1); }
 }
 
-.fs-bait-shadow {
-  width: 28px; height: 6px;
-  border-radius: 50%;
-  background: rgba(0,0,0,0.15);
-  margin-top: 6px;
-  filter: blur(2px);
-  animation: fs-shadow-bob 2s ease-in-out infinite;
-}
-@keyframes fs-shadow-bob {
-  0%, 100% { transform: scaleX(1); opacity: 0.4; }
-  30%      { transform: scaleX(0.8); opacity: 0.5; }
-  70%      { transform: scaleX(1.1); opacity: 0.3; }
-}
-
 /* Ripples around bait */
 .fs-ripples {
   position: absolute;
@@ -179,12 +166,13 @@ html, body, #root {
 
 /* ── Catch log feed ──────────────────────────────────────────────────────────── */
 .catch-log {
-  position: fixed;
-  bottom: 12px; left: 12px; right: 12px;
-  z-index: 55;
+  width: 280px;
   display: flex; flex-direction: column;
-  gap: 6px;
+  gap: 5px;
   pointer-events: none;
+  flex-shrink: 0;
+  max-height: 160px;
+  overflow: hidden;
 }
 .catch-log-entry {
   display: flex; align-items: center; gap: 8px;
@@ -475,10 +463,17 @@ html, body, #root {
 .fish-btn-icon  { width: 42px; height: 42px; }
 .fish-btn-label { font-size: 13px; font-weight: 900; letter-spacing: 0.5px; text-transform: uppercase; }
 
-/* ── Aquarium tank ───────────────────────────────────────────────────────────── */
-.tank {
+/* ── Aquarium area wrapper ───────────────────────────────────────────────────── */
+.aquarium-area {
   flex: 1;
   position: relative;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* ── Aquarium tank ───────────────────────────────────────────────────────────── */
+.tank {
+  position: absolute; inset: 0;
   overflow: hidden;
   background: linear-gradient(180deg,
     #0369a1 0%,

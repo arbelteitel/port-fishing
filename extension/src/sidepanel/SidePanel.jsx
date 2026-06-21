@@ -276,13 +276,12 @@ function BaitBob({ cast, onCatch }) {
   }, []);
 
   return (
-    <div className="fs-bob-slot">
+    <div className="fs-bob-slot" style={{ left: `${cast.x}%`, top: `${cast.y}%` }}>
       {phase !== 'caught' ? (
         <>
           <div className={`fs-bait-wrap ${phase}`}>
             <img className="fs-bait-sprite item-art" src={baitImg(cast.baitId)} alt="bait" />
           </div>
-          <div className="fs-bait-shadow" />
           <div className={`fs-ripples ${phase}`}>
             <div className="fs-ripple r1" />
             <div className="fs-ripple r2" />
@@ -299,7 +298,7 @@ function BaitBob({ cast, onCatch }) {
 
 // ── Fishing overlay ──────────────────────────────────────────────────────────
 
-function FishingOverlay({ casts, onCatch }) {
+function FishingOverlay({ casts, catchLog, onCatch }) {
   return (
     <div className="fs-overlay">
       <div className="fs-card">
@@ -316,12 +315,13 @@ function FishingOverlay({ casts, onCatch }) {
             ))}
           </div>
         </div>
-        <div className="fs-bait-row">
+        <div className="fs-bait-field">
           {casts.map(c => (
             <BaitBob key={c.id} cast={c} onCatch={onCatch} />
           ))}
         </div>
       </div>
+      <CatchLog entries={catchLog} />
     </div>
   );
 }
@@ -654,17 +654,27 @@ export default function SidePanel() {
     return () => clearInterval(id);
   }, []);
 
+  const inventoryRef = useRef(inventory);
+  inventoryRef.current = inventory;
+
   function goFish() {
-    if (baitCount === 0 || activeCasts.length >= 4) return;
-    const newInv = inventory.map(b => b.id === activeBait.id ? { ...b, count: b.count - 1 } : b);
+    const currentInv = inventoryRef.current;
+    const usedBait = currentInv.find(b => b.id === selectedBait?.id && b.count > 0)
+                  || currentInv.find(b => b.count > 0);
+    if (!usedBait || usedBait.count === 0 || activeCasts.length >= 4) return;
+
+    const newInv = currentInv.map(b => b.id === usedBait.id ? { ...b, count: b.count - 1 } : b);
     setInventory(newInv);
-    const stillHas = newInv.find(b => b.id === activeBait.id)?.count > 0;
+    inventoryRef.current = newInv;
+
+    const stillHas = newInv.find(b => b.id === usedBait.id)?.count > 0;
     if (!stillHas) {
       const next = newInv.find(b => b.count > 0);
       if (next) setSelectedBait(next);
     }
 
-    const w = getRarityWeights(totalBoost);
+    const boost = Math.min(0.9, usedBait.boost + equippedRod.rodBoost);
+    const w = getRarityWeights(boost);
     const total = Object.values(w).reduce((a, b) => a + b, 0);
     let roll = Math.random() * total;
     let rarity = "common";
@@ -676,7 +686,9 @@ export default function SidePanel() {
     const fish = pool[Math.floor(Math.random() * pool.length)] ?? ALL_FISH[0];
 
     castIdRef.current += 1;
-    setActiveCasts(prev => [...prev, { id: castIdRef.current, baitId: activeBait.id, fish }]);
+    const x = 15 + Math.random() * 60;
+    const y = 15 + Math.random() * 50;
+    setActiveCasts(prev => [...prev, { id: castIdRef.current, baitId: usedBait.id, fish, x, y }]);
   }
 
   function onBaitCaught(cast) {
@@ -727,7 +739,6 @@ export default function SidePanel() {
 
   return (
     <div className="panel">
-      <CatchLog entries={catchLog} />
       {showMarket  && (
         <Market
           catches={catches}
@@ -801,18 +812,20 @@ export default function SidePanel() {
         </button>
       </div>
 
-      {activeCasts.length > 0 && (
-        <FishingOverlay
-          casts={activeCasts}
-          onCatch={onBaitCaught}
+      <div className="aquarium-area">
+        <Aquarium
+          fish={top10}
+          decorations={ownedDecorations}
+          onMoveDecoration={moveDecoration}
         />
-      )}
-
-      <Aquarium
-        fish={top10}
-        decorations={ownedDecorations}
-        onMoveDecoration={moveDecoration}
-      />
+        {activeCasts.length > 0 && (
+          <FishingOverlay
+            casts={activeCasts}
+            catchLog={catchLog}
+            onCatch={onBaitCaught}
+          />
+        )}
+      </div>
     </div>
   );
 }
