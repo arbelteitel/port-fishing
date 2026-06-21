@@ -774,6 +774,63 @@ html, body, #root {
 .icon-btn:active { transform: scale(0.93); }
 .icon-btn.market-btn { background: linear-gradient(135deg, rgba(14,165,233,0.2), rgba(99,102,241,0.2)); }
 
+/* ── Hamburger menu ────────────────────────────────────────────────────────── */
+.hamburger-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+.hamburger-btn {
+  font-size: 15px !important;
+}
+.hamburger-backdrop {
+  position: fixed; inset: 0; z-index: 49;
+}
+.hamburger-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 50;
+  min-width: 190px;
+  background: var(--sheet-bg);
+  border-radius: 14px;
+  padding: 6px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,0.08);
+  backdrop-filter: blur(20px);
+  animation: hamburger-in 0.18s cubic-bezier(0.32, 1.2, 0.54, 1);
+  transform-origin: top right;
+}
+@keyframes hamburger-in {
+  0%   { opacity: 0; transform: scale(0.92) translateY(-4px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+.hamburger-item {
+  display: flex; align-items: center; gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border: none; cursor: pointer;
+  background: transparent;
+  border-radius: 10px;
+  font-size: 13px; font-weight: 600;
+  color: var(--option-name);
+  transition: background 0.1s;
+}
+.hamburger-item:hover { background: var(--option-hover); }
+.hamburger-item:active { background: var(--option-selected); }
+.hamburger-item-icon {
+  font-size: 16px;
+  width: 24px;
+  text-align: center;
+  flex-shrink: 0;
+}
+.hamburger-item-label {
+  white-space: nowrap;
+}
+.hamburger-divider {
+  height: 1px;
+  margin: 4px 8px;
+  background: var(--sheet-sep);
+}
+
 /* ── Tank decoration (floor-bound) ──────────────────────────────────────────── */
 .tank-decoration {
   position: absolute;
@@ -799,6 +856,8 @@ html, body, #root {
   -webkit-user-drag: none;
   user-select: none;
   pointer-events: none;
+  object-fit: contain;
+  object-position: bottom center;
 }
 
 /* Market decoration thumbnail */

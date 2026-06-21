@@ -758,6 +758,9 @@ export default function SidePanel() {
   const [showHistory, setShowHistory]       = useState(false);
   const [historyClosing, setHistoryClosing] = useState(false);
 
+  // Hamburger menu
+  const [showHamburger, setShowHamburger] = useState(false);
+
   // isDark: true = dark mode, false = light mode. Initialized from system preference, persisted manually.
   const systemDark = window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false;
   const [isDark, setIsDark] = useState(systemDark);
@@ -1003,11 +1006,34 @@ export default function SidePanel() {
             <span className="gold-icon">🪙</span>
             <span className="gold-num">{goldCoins}</span>
           </div>
-          <button className="icon-btn" onClick={() => setIsDark(d => !d)} title={themeTitle}>{themeIcon}</button>
-          <button className="icon-btn" onClick={() => chrome.runtime.sendMessage({ type: "OPEN_AQUARIUM_WINDOW" })} title="Full-screen aquarium">⛶</button>
-          <button className="icon-btn" onClick={() => setShowHistory(true)} title="Catch history">📋</button>
-          <button className="icon-btn" onClick={() => setShowBag(true)} title="Loadout">🎒</button>
           <button className="icon-btn market-btn" onClick={() => setShowMarket(true)} title="Market">🏪</button>
+          <div className="hamburger-wrap">
+            <button className="icon-btn hamburger-btn" onClick={() => setShowHamburger(h => !h)} title="Menu">☰</button>
+            {showHamburger && (
+              <>
+                <div className="hamburger-backdrop" onClick={() => setShowHamburger(false)} />
+                <div className="hamburger-dropdown">
+                  <button className="hamburger-item" onClick={() => { setShowBag(true); setShowHamburger(false); }}>
+                    <span className="hamburger-item-icon">🎒</span>
+                    <span className="hamburger-item-label">Loadout</span>
+                  </button>
+                  <button className="hamburger-item" onClick={() => { setShowHistory(true); setShowHamburger(false); }}>
+                    <span className="hamburger-item-icon">📋</span>
+                    <span className="hamburger-item-label">Catch History</span>
+                  </button>
+                  <button className="hamburger-item" onClick={() => { chrome.runtime.sendMessage({ type: "OPEN_AQUARIUM_WINDOW" }); setShowHamburger(false); }}>
+                    <span className="hamburger-item-icon">⛶</span>
+                    <span className="hamburger-item-label">Full-screen Aquarium</span>
+                  </button>
+                  <div className="hamburger-divider" />
+                  <button className="hamburger-item" onClick={() => { setIsDark(d => !d); setShowHamburger(false); }}>
+                    <span className="hamburger-item-icon">{themeIcon}</span>
+                    <span className="hamburger-item-label">{isDark ? 'Light Mode' : 'Dark Mode'}</span>
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
           <div className="bait-chip" onClick={() => setShowBaitMenu(true)}>
             <span className="bait-num">{baitCount}</span>
             <img className="bait-chip-art item-art" src={activeBait.img} alt={activeBait.name} />
