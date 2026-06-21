@@ -808,3 +808,19 @@ html, body, #root {
 .market-row-emoji  { width: 40px; height: 40px; }
 .bait-chip-art     { width: 22px; height: 22px; }
 .fs-rod-art        { width: 72px; height: 72px; image-rendering: pixelated; }
+
+/* ── Catch history sheet ──────────────────────────────────────────────────────── */
+.history-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.history-row:last-child { border-bottom: none; }
+.history-fish-icon { width: 32px; height: 32px; flex-shrink: 0; }
+.history-row-info {
+  flex: 1; display: flex; flex-direction: column; gap: 1px; min-width: 0;
+}
+.history-fish-name { font-size: 13px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.history-fish-rarity { font-size: 10px; color: rgba(255,255,255,0.45); text-transform: capitalize; }
+.history-time { font-size: 11px; color: rgba(255,255,255,0.4); flex-shrink: 0; white-space: nowrap; }
+.history-empty { color: rgba(255,255,255,0.4); font-size: 13px; text-align: center; padding: 24px 0; }

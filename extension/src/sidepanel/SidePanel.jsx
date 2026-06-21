@@ -5,7 +5,7 @@ import "./sidepanel.css";
 const RARITY_COLORS = { common: "#94a3b8", uncommon: "#22c55e", rare: "#38bdf8", legendary: "#f59e0b" };
 const RARITY_GLOW   = { common: "rgba(148,163,184,0.5)", uncommon: "rgba(34,197,94,0.6)", rare: "rgba(56,189,248,0.6)", legendary: "rgba(245,158,11,0.7)" };
 const RARITY_RANK   = { legendary: 4, rare: 3, uncommon: 2, common: 1 };
-const SELL_PRICES   = { common: 5, uncommon: 15, rare: 40, legendary: 100 };
+const SELL_PRICES   = { common: 2, uncommon: 7, rare: 20, legendary: 60 };
 const sizeToSpeed   = (size) => 22 / size;
 const sizeToPx      = (size) => Math.min(48, Math.round(size * 1.4));
 
@@ -19,14 +19,14 @@ const comboImg = (rodId, baitId) => `/items/${rodId}_rod_bait_${baitId}.png`;
 // ids match the bait_<id>.png asset names so combo art can be resolved.
 
 const BAIT_TYPES = [
-  { id: "basic",        name: "Doughball Bait", img: baitImg("basic"),        rarity: "common",    boost: 0,    price: 5,   description: "Gets the job done. Barely." },
-  { id: "green",        name: "Algae Bait",     img: baitImg("green"),        rarity: "common",    boost: 0.12, price: 15,  description: "Fresh and grassy. Fish nibble politely." },
-  { id: "red",          name: "Roe Bait",       img: baitImg("red"),          rarity: "uncommon",  boost: 0.22, price: 25,  description: "Bright and juicy. Hard to ignore." },
-  { id: "black",        name: "Boilie Bait",    img: baitImg("black"),        rarity: "uncommon",  boost: 0.32, price: 40,  description: "Dense and dark. Sinks to the good spots." },
-  { id: "fish",         name: "Cut Bait",       img: baitImg("fish"),         rarity: "rare",      boost: 0.42, price: 65,  description: "A chunk of the real thing. Predators love it." },
-  { id: "fish_black",   name: "Chum Bait",      img: baitImg("fish_black"),   rarity: "rare",      boost: 0.52, price: 95,  description: "A trail of temptation. Draws a crowd." },
-  { id: "yellow_point", name: "Amber Bait",     img: baitImg("yellow_point"), rarity: "legendary", boost: 0.63, price: 135, description: "Glints like treasure. Rare fish circle in." },
-  { id: "golden",       name: "Golden Bait",    img: baitImg("golden"),       rarity: "legendary", boost: 0.75, price: 185, description: "Dark arts. Almost guarantees something extraordinary." },
+  { id: "basic",        name: "Doughball Bait", img: baitImg("basic"),        rarity: "common",    boost: 0,    price: 3,   description: "Gets the job done. Barely." },
+  { id: "green",        name: "Algae Bait",     img: baitImg("green"),        rarity: "common",    boost: 0.12, price: 9,   description: "Fresh and grassy. Fish nibble politely." },
+  { id: "red",          name: "Roe Bait",       img: baitImg("red"),          rarity: "uncommon",  boost: 0.22, price: 16,  description: "Bright and juicy. Hard to ignore." },
+  { id: "black",        name: "Boilie Bait",    img: baitImg("black"),        rarity: "uncommon",  boost: 0.32, price: 26,  description: "Dense and dark. Sinks to the good spots." },
+  { id: "fish",         name: "Cut Bait",       img: baitImg("fish"),         rarity: "rare",      boost: 0.42, price: 42,  description: "A chunk of the real thing. Predators love it." },
+  { id: "fish_black",   name: "Chum Bait",      img: baitImg("fish_black"),   rarity: "rare",      boost: 0.52, price: 62,  description: "A trail of temptation. Draws a crowd." },
+  { id: "yellow_point", name: "Amber Bait",     img: baitImg("yellow_point"), rarity: "legendary", boost: 0.63, price: 88,  description: "Glints like treasure. Rare fish circle in." },
+  { id: "golden",       name: "Golden Bait",    img: baitImg("golden"),       rarity: "legendary", boost: 0.75, price: 120, description: "Dark arts. Almost guarantees something extraordinary." },
 ];
 
 // ── Rod system ────────────────────────────────────────────────────────────────
@@ -34,15 +34,15 @@ const BAIT_TYPES = [
 
 const ROD_TYPES = [
   { id: "basic", name: "Basic Rod",  img: rodImg("basic"), price: 0,   rodBoost: 0,    description: "A trusty rod. Gets the job done." },
-  { id: "black", name: "Carbon Rod", img: rodImg("black"), price: 120, rodBoost: 0.12, description: "Stiff and sensitive. Improved odds." },
-  { id: "blue",  name: "Tidal Rod",  img: rodImg("blue"),  price: 280, rodBoost: 0.22, description: "Tuned for the deep. Serious power." },
-  { id: "pink",  name: "Coral Rod",  img: rodImg("pink"),  price: 550, rodBoost: 0.35, description: "Forged from rare catches. The finest cast." },
+  { id: "black", name: "Carbon Rod", img: rodImg("black"), price: 55,  rodBoost: 0.12, description: "Stiff and sensitive. Improved odds." },
+  { id: "blue",  name: "Tidal Rod",  img: rodImg("blue"),  price: 140, rodBoost: 0.22, description: "Tuned for the deep. Serious power." },
+  { id: "pink",  name: "Coral Rod",  img: rodImg("pink"),  price: 300, rodBoost: 0.35, description: "Forged from rare catches. The finest cast." },
 ];
 
 // ── Decorations ───────────────────────────────────────────────────────────────
 
 const DECORATION_CATALOG = [
-  { id: "ship", name: "Sunken Ship", emoji: "🚢", price: 50, description: "A weathered ship resting on the seafloor." },
+  { id: "ship", name: "Sunken Ship", emoji: "🚢", price: 25, description: "A weathered ship resting on the seafloor." },
 ];
 
 // ── Fish helpers ──────────────────────────────────────────────────────────────
@@ -62,18 +62,19 @@ function oddsPercent(boost) {
   return Object.fromEntries(Object.entries(w).map(([k, v]) => [k, Math.round(v / t * 100)]));
 }
 
-const MOCK_BAIT_INVENTORY = BAIT_TYPES.map((b, i) => ({ ...b, count: [8, 5, 3, 2, 1, 0, 0, 0][i] }));
+const MOCK_BAIT_INVENTORY = BAIT_TYPES.map((b, i) => ({ ...b, count: [3, 2, 1, 0, 0, 0, 0, 0][i] }));
 
 const ALL_FISH = REGISTRY_FISH;
 
+const _now = Date.now();
 const MOCK_CATCHES = [
-  { ...ALL_FISH.find(f => f.id === "anglerfish") },
-  { ...ALL_FISH.find(f => f.id === "axolotl") },
-  { ...ALL_FISH.find(f => f.id === "sunfish") },
-  { ...ALL_FISH.find(f => f.id === "octopus") },
-  { ...ALL_FISH.find(f => f.id === "clownfish") },
-  { ...ALL_FISH.find(f => f.id === "koi") },
-  { ...ALL_FISH.find(f => f.id === "pirahna") },
+  { ...ALL_FISH.find(f => f.id === "anglerfish"), caughtAt: _now - 1000 * 60 * 5 },
+  { ...ALL_FISH.find(f => f.id === "axolotl"),    caughtAt: _now - 1000 * 60 * 42 },
+  { ...ALL_FISH.find(f => f.id === "sunfish"),    caughtAt: _now - 1000 * 60 * 60 * 3 },
+  { ...ALL_FISH.find(f => f.id === "octopus"),    caughtAt: _now - 1000 * 60 * 60 * 11 },
+  { ...ALL_FISH.find(f => f.id === "clownfish"),  caughtAt: _now - 1000 * 60 * 60 * 26 },
+  { ...ALL_FISH.find(f => f.id === "koi"),        caughtAt: _now - 1000 * 60 * 60 * 48 },
+  { ...ALL_FISH.find(f => f.id === "pirahna"),    caughtAt: _now - 1000 * 60 * 60 * 72 },
 ];
 
 // ── Physics aquarium ──────────────────────────────────────────────────────────
@@ -641,6 +642,43 @@ function Market({ catches, inventory, goldCoins, ownedRodIds, ownedDecorations, 
   );
 }
 
+// ── Fishing history ───────────────────────────────────────────────────────────
+
+function timeAgo(ts) {
+  if (!ts) return "unknown";
+  const secs = Math.floor((Date.now() - ts) / 1000);
+  if (secs < 60)  return "just now";
+  if (secs < 3600) return `${Math.floor(secs / 60)}m ago`;
+  if (secs < 86400) return `${Math.floor(secs / 3600)}h ago`;
+  return `${Math.floor(secs / 86400)}d ago`;
+}
+
+function HistorySheet({ catches, onClose, closing, onClosed }) {
+  const sorted = [...catches].sort((a, b) => (b.caughtAt || 0) - (a.caughtAt || 0));
+  return (
+    <>
+      <div className={`bait-sheet-backdrop${closing ? ' closing' : ''}`} onClick={onClose} />
+      <div className={`bait-sheet${closing ? ' closing' : ''}`} onAnimationEnd={closing ? onClosed : undefined}>
+        <div className="bait-sheet-handle" />
+        <div className="bait-sheet-title">Catch History</div>
+        {sorted.length === 0
+          ? <div className="history-empty">No fish caught yet. Go fish!</div>
+          : sorted.map((fish, i) => (
+            <div key={`${fish.id}-${i}`} className="history-row">
+              <img src={fish.img} alt={fish.name} className="fish-sprite history-fish-icon" />
+              <div className="history-row-info">
+                <span className="history-fish-name" style={{ color: RARITY_COLORS[fish.rarity] }}>{fish.name}</span>
+                <span className="history-fish-rarity">{fish.rarity}</span>
+              </div>
+              <span className="history-time">{timeAgo(fish.caughtAt)}</span>
+            </div>
+          ))
+        }
+      </div>
+    </>
+  );
+}
+
 // ── Main panel ────────────────────────────────────────────────────────────────
 
 export default function SidePanel() {
@@ -654,7 +692,7 @@ export default function SidePanel() {
   const castIdRef = useRef(0);
 
   // Economy & gear
-  const [goldCoins, setGoldCoins]         = useState(120);
+  const [goldCoins, setGoldCoins]         = useState(25);
   const [equippedRod, setEquippedRod]     = useState(ROD_TYPES[0]);
   const [ownedRodIds, setOwnedRodIds]     = useState(() => new Set(["basic"]));
   const [ownedDecorations, setOwnedDecorations] = useState([]);
@@ -667,6 +705,10 @@ export default function SidePanel() {
   // Bag
   const [showBag, setShowBag]       = useState(false);
   const [bagClosing, setBagClosing] = useState(false);
+
+  // History
+  const [showHistory, setShowHistory]       = useState(false);
+  const [historyClosing, setHistoryClosing] = useState(false);
 
   const baitCount = inventory.reduce((a, b) => a + b.count, 0);
   const caughtIds = new Set(catches.map(f => f.id));
@@ -730,7 +772,8 @@ export default function SidePanel() {
 
   function onBaitCaught(cast) {
     const isNew = !caughtIds.has(cast.fish.id);
-    setCatches(prev => prev.find(f => f.id === cast.fish.id) ? prev : [{ ...cast.fish }, ...prev]);
+    const catchEntry = { ...cast.fish, caughtAt: Date.now() };
+    setCatches(prev => [catchEntry, ...prev.filter(f => f.id !== cast.fish.id)]);
 
     const logId = cast.id;
     setCatchLog(prev => [{ id: logId, fish: cast.fish, isNew }, ...prev].slice(0, 8));
@@ -803,6 +846,14 @@ export default function SidePanel() {
           onClosed={() => { setShowBag(false); setBagClosing(false); }}
         />
       )}
+      {showHistory && (
+        <HistorySheet
+          catches={catches}
+          onClose={() => setHistoryClosing(true)}
+          closing={historyClosing}
+          onClosed={() => { setShowHistory(false); setHistoryClosing(false); }}
+        />
+      )}
       {showBaitMenu && (
         <BaitInventory
           inventory={inventory}
@@ -828,6 +879,7 @@ export default function SidePanel() {
             <span className="gold-num">{goldCoins}</span>
           </div>
           <button className="icon-btn" onClick={() => chrome.runtime.sendMessage({ type: "OPEN_AQUARIUM_WINDOW" })} title="Full-screen aquarium">⛶</button>
+          <button className="icon-btn" onClick={() => setShowHistory(true)} title="Catch history">📋</button>
           <button className="icon-btn" onClick={() => setShowBag(true)} title="Loadout">🎒</button>
           <button className="icon-btn market-btn" onClick={() => setShowMarket(true)} title="Market">🏪</button>
           <div className="bait-chip" onClick={() => setShowBaitMenu(true)}>
