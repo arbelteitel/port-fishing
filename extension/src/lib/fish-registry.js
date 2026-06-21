@@ -87,20 +87,20 @@ export const FISH = [
   { id: "grouper",           name: "Grouper",           img: "/fish/grouper.png",                pool: "workflow_automation", rarity: "uncommon", size: 22, description: "Slow-growing but deeply reliable automation." },
   { id: "pirahna",           name: "Piranha",           img: "/fish/pirahna.png",                pool: "workflow_automation", rarity: "rare",     size: 34, description: "Aggressive retry logic with bite." },
   { id: "red_snapper",       name: "Red Snapper",       img: "/fish/red_snapper.png",            pool: "workflow_automation", rarity: "rare",     size: 36, description: "Snaps at stale action runs." },
-  { id: "sea_turtle",        name: "Sea Turtle",        img: "/fish/sea-dwellers/sea_turtle.png",pool: "workflow_automation", rarity: "legendary",size: 50, description: "Has been running this workflow since 2019." },
+  { id: "sea_turtle",        name: "Sea Turtle",        img: "/fish/sea_turtle.png",pool: "workflow_automation", rarity: "legendary",size: 50, description: "Has been running this workflow since 2019." },
 
   // ── Integrations & Data — creatures, connectors, lake ───────────────────
   { id: "crab_tan",          name: "Sand Crab",         img: "/fish/crab_tan.png",               pool: "integrations_data",  rarity: "common",    size: 18, description: "Scuttles between webhook endpoints." },
-  { id: "crab_salmon",       name: "Salmon Crab",       img: "/fish/crab_salmon.png",            pool: "integrations_data",  rarity: "common",    size: 18, description: "Carries small payloads with pride." },
-  { id: "snail",             name: "Snail",             img: "/fish/sea-dwellers/snail.png",     pool: "integrations_data",  rarity: "common",    size: 16, description: "Rate-limited. But it gets there." },
-  { id: "pink_snail",        name: "Pink Snail",        img: "/fish/sea-dwellers/pink_snail.png",pool: "integrations_data",  rarity: "common",    size: 16, description: "A politely throttled API consumer." },
+  { id: "crab_salmon",       name: "Salmon Crab",       img: "/fish/crab_shrimp.png",            pool: "integrations_data",  rarity: "common",    size: 18, description: "Carries small payloads with pride." },
+  { id: "snail",             name: "Snail",             img: "/fish/ground-fish/snail.png",     pool: "integrations_data",  rarity: "common",    size: 16, ground: true, description: "Rate-limited. But it gets there." },
+  { id: "pink_snail",        name: "Pink Snail",        img: "/fish/ground-fish/pink_snail.png",pool: "integrations_data",  rarity: "common",    size: 16, ground: true, description: "A politely throttled API consumer." },
   { id: "squid",             name: "Squid",             img: "/fish/squid.png",                  pool: "integrations_data",  rarity: "uncommon",  size: 28, description: "Ink-jets data into the lakehouse." },
   { id: "lobster",           name: "Lobster",           img: "/fish/Lobster.png",                pool: "integrations_data",  rarity: "uncommon",  size: 30, description: "Claws through authentication headers." },
   { id: "red_crab",          name: "Red Crab",          img: "/fish/red_crab.png",               pool: "integrations_data",  rarity: "uncommon",  size: 24, description: "Triggers on every push event." },
-  { id: "sea_cucumber",      name: "Sea Cucumber",      img: "/fish/sea-dwellers/sea_cucamber.png",pool: "integrations_data",rarity: "uncommon",  size: 22, description: "Ingests everything. Complains about nothing." },
+  { id: "sea_cucumber",      name: "Sea Cucumber",      img: "/fish/ground-fish/sea_cucamber.png",pool: "integrations_data",rarity: "uncommon",  size: 22, ground: true, description: "Ingests everything. Complains about nothing." },
   { id: "octopus",           name: "Octopus",           img: "/fish/octopus.png",                pool: "integrations_data",  rarity: "rare",      size: 38, description: "Eight integrations running simultaneously." },
   { id: "crab_maroon",       name: "Maroon Crab",       img: "/fish/crab_maroon.png",            pool: "integrations_data",  rarity: "rare",      size: 30, description: "Only appears in production. Never staging." },
-  { id: "axolotl",           name: "Axolotl",           img: "/fish/sea-dwellers/axolotl.png",   pool: "integrations_data",  rarity: "legendary", size: 48, description: "Regenerates broken integrations automatically." },
+  { id: "axolotl",           name: "Axolotl",           img: "/fish/axolotl.png",   pool: "integrations_data",  rarity: "legendary", size: 48, description: "Regenerates broken integrations automatically." },
 ];
 
 export const RARITY_WEIGHTS = {

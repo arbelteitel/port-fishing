@@ -7,7 +7,7 @@ const RARITY_GLOW   = { common: "rgba(148,163,184,0.5)", uncommon: "rgba(34,197,
 const RARITY_RANK   = { legendary: 4, rare: 3, uncommon: 2, common: 1 };
 const SELL_PRICES   = { common: 5, uncommon: 15, rare: 40, legendary: 100 };
 const sizeToSpeed   = (size) => 22 / size;
-const sizeToPx      = (size) => Math.round(size * 1.4);
+const sizeToPx      = (size) => Math.min(48, Math.round(size * 1.4));
 
 // ── Item art (rods & baits live in /items) ──────────────────────────────────────
 // Filenames: bait_<baitId>.png, <rodId>_rod.png, <rodId>_rod_bait_<baitId>.png
@@ -91,22 +91,25 @@ function Aquarium({ fish, decorations, onMoveDecoration }) {
     const W = el.clientWidth;
     const H = el.clientHeight;
     const existingById = Object.fromEntries(stateRef.current.map(s => [s.id, s]));
+    const SEABED_INIT = 22;
     stateRef.current = fish.map((f) => {
       if (existingById[f.id]) return existingById[f.id];
-      const spd   = sizeToSpeed(f.size);
-      const angle = Math.random() * Math.PI * 2;
+      const isGround = !!f.ground;
+      const spd   = isGround ? sizeToSpeed(f.size) * 0.35 : sizeToSpeed(f.size);
+      const angle = isGround ? (Math.random() < 0.5 ? 0 : Math.PI) : Math.random() * Math.PI * 2;
       const vx0   = Math.cos(angle) * spd;
       const halfPx = sizeToPx(f.size) / 2;
       return {
         id: f.id,
         halfPx,
+        ground: isGround,
         x: 40 + Math.random() * (W - 80),
-        y: 30 + Math.random() * (H - 100),
+        y: isGround ? H - SEABED_INIT - halfPx : 30 + Math.random() * (H - 100),
         vx: vx0,
-        vy: Math.sin(angle) * spd,
+        vy: isGround ? 0 : Math.sin(angle) * spd,
         baseSpeed: spd,
         bobPhase: Math.random() * Math.PI * 2,
-        wanderStrength: 0.010 + Math.random() * 0.006,
+        wanderStrength: isGround ? 0.002 : 0.010 + Math.random() * 0.006,
         faceRight: vx0 >= 0,
         flipCooldown: 0,
         fleeTtl: 0,
@@ -131,6 +134,37 @@ function Aquarium({ fish, decorations, onMoveDecoration }) {
       stateRef.current.forEach((s, i) => {
         const bottomLimit = H - SEABED - s.halfPx;
         s.bobPhase += 0.028;
+
+        if (s.ground) {
+          s.y = bottomLimit;
+          s.vy = 0;
+          if (Math.random() < 0.005) s.vx = -s.vx;
+          const spdMod = 1 + Math.sin(s.bobPhase) * 0.15;
+          const dir = s.vx >= 0 ? 1 : -1;
+          s.vx = dir * s.baseSpeed * spdMod;
+          if (s.fleeTtl > 0) {
+            s.vx += s.fleeVx;
+            s.fleeVx *= 0.88;
+            s.fleeTtl--;
+          }
+          s.x += s.vx;
+          if (s.x < MARGIN)     { s.x = MARGIN;     s.vx = Math.abs(s.vx); }
+          if (s.x > W - MARGIN) { s.x = W - MARGIN; s.vx = -Math.abs(s.vx); }
+          if (s.flipCooldown > 0) {
+            s.flipCooldown--;
+          } else if ((s.vx > 0) !== s.faceRight) {
+            s.faceRight = s.vx > 0;
+            s.flipCooldown = 45;
+          }
+          const el = elemsRef.current[i];
+          if (el) {
+            el.style.left      = `${s.x}px`;
+            el.style.top       = `${s.y}px`;
+            el.style.transform = `translate(-50%,-50%) scaleX(${s.faceRight ? 1 : -1})`;
+          }
+          return;
+        }
+
         const speedMod  = 1 + Math.sin(s.bobPhase) * 0.28;
         const targetSpd = s.baseSpeed * speedMod;
         const wanderAngle = (Math.random() - 0.5) * s.wanderStrength;
@@ -625,6 +659,8 @@ export default function SidePanel() {
   const [ownedRodIds, setOwnedRodIds]     = useState(() => new Set(["basic"]));
   const [ownedDecorations, setOwnedDecorations] = useState([]);
 
+  const [emptyBaitToast, setEmptyBaitToast] = useState(false);
+
   // Market
   const [showMarket, setShowMarket] = useState(false);
 
@@ -635,9 +671,8 @@ export default function SidePanel() {
   const baitCount = inventory.reduce((a, b) => a + b.count, 0);
   const caughtIds = new Set(catches.map(f => f.id));
   const top10 = [...catches].sort((a, b) => RARITY_RANK[b.rarity] - RARITY_RANK[a.rarity]).slice(0, 10);
-  const activeBait = inventory.find(b => b.id === selectedBait?.id && b.count > 0)
-                  || inventory.find(b => b.count > 0)
-                  || BAIT_TYPES[0];
+  const activeBait = inventory.find(b => b.id === selectedBait?.id) || BAIT_TYPES[0];
+  const selectedBaitCount = inventory.find(b => b.id === selectedBait?.id)?.count ?? 0;
 
   const totalBoost = Math.min(0.9, activeBait.boost + equippedRod.rodBoost);
 
@@ -659,19 +694,21 @@ export default function SidePanel() {
 
   function goFish() {
     const currentInv = inventoryRef.current;
-    const usedBait = currentInv.find(b => b.id === selectedBait?.id && b.count > 0)
-                  || currentInv.find(b => b.count > 0);
-    if (!usedBait || usedBait.count === 0 || activeCasts.length >= 4) return;
+    const selectedCount = currentInv.find(b => b.id === selectedBait?.id)?.count ?? 0;
 
+    if (selectedCount === 0) {
+      setEmptyBaitToast(true);
+      setShowBag(true);
+      setTimeout(() => setEmptyBaitToast(false), 3000);
+      return;
+    }
+
+    if (activeCasts.length >= 4) return;
+
+    const usedBait = currentInv.find(b => b.id === selectedBait.id);
     const newInv = currentInv.map(b => b.id === usedBait.id ? { ...b, count: b.count - 1 } : b);
     setInventory(newInv);
     inventoryRef.current = newInv;
-
-    const stillHas = newInv.find(b => b.id === usedBait.id)?.count > 0;
-    if (!stillHas) {
-      const next = newInv.find(b => b.count > 0);
-      if (next) setSelectedBait(next);
-    }
 
     const boost = Math.min(0.9, usedBait.boost + equippedRod.rodBoost);
     const w = getRarityWeights(boost);
@@ -801,14 +838,22 @@ export default function SidePanel() {
         </div>
       </header>
 
+      {emptyBaitToast && (
+        <div className="empty-bait-toast">
+          <span>🪣 {activeBait.name} is out! Pick another bait.</span>
+        </div>
+      )}
+
       <div className="btn-section">
         <button
-          className={`fish-btn ${baitCount === 0 ? "empty" : ""}`}
+          className={`fish-btn ${baitCount === 0 || selectedBaitCount === 0 ? "empty" : ""}`}
           onClick={goFish}
           disabled={baitCount === 0 || activeCasts.length >= 4}
         >
           <img className="fish-btn-icon item-art" src={comboImg(equippedRod.id, activeBait.id)} alt="" />
-          <span className="fish-btn-label">{baitCount === 0 ? "No bait" : "Fish!"}</span>
+          <span className="fish-btn-label">
+            {baitCount === 0 ? "No bait" : selectedBaitCount === 0 ? "Bait empty!" : "Fish!"}
+          </span>
         </button>
       </div>
 

@@ -3,7 +3,7 @@ import { FISH } from "../lib/fish-registry.js";
 import "./aquarium.css";
 
 const sizeToSpeed = (size) => 22 / size;
-const sizeToPx    = (size) => Math.round(size * 1.8);
+const sizeToPx    = (size) => Math.max(42, Math.round(size * 1.8));
 
 // ── Physics tank ──────────────────────────────────────────────────────────────
 

@@ -292,26 +292,30 @@ html, body, #root {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 18px;
+  padding: 10px 12px;
   background: rgba(255,255,255,0.55);
   backdrop-filter: blur(16px);
   border-bottom: 1px solid rgba(255,255,255,0.7);
   flex-shrink: 0;
+  min-width: 0;
+  overflow: hidden;
+  gap: 8px;
 }
 
-.header-brand  { display: flex; align-items: center; gap: 10px; }
-.header-logo   { width: 38px; height: 38px; }
-.header-title  { font-size: 16px; font-weight: 800; color: #0369a1; letter-spacing: -0.3px; }
-.header-sub    { font-size: 11px; color: #7dd3fc; font-weight: 600; margin-top: 1px; }
+.header-brand  { display: flex; align-items: center; gap: 8px; flex-shrink: 1; min-width: 0; overflow: hidden; }
+.header-logo   { width: 34px; height: 34px; flex-shrink: 0; }
+.header-title  { font-size: 15px; font-weight: 800; color: #0369a1; letter-spacing: -0.3px; white-space: nowrap; }
+.header-sub    { font-size: 10px; color: #7dd3fc; font-weight: 600; margin-top: 1px; white-space: nowrap; }
 
 .bait-chip {
-  display: flex; align-items: center; gap: 5px;
+  display: flex; align-items: center; gap: 4px;
   background: linear-gradient(135deg, #0ea5e9, #38bdf8);
-  border-radius: 24px; padding: 7px 14px;
+  border-radius: 24px; padding: 5px 10px;
   box-shadow: 0 4px 14px rgba(14,165,233,0.4);
+  flex-shrink: 0; cursor: pointer;
 }
-.bait-num   { font-size: 20px; font-weight: 900; color: #fff; line-height: 1; }
-.bait-label { font-size: 10px; color: rgba(255,255,255,0.8); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+.bait-num   { font-size: 16px; font-weight: 900; color: #fff; line-height: 1; white-space: nowrap; }
+.bait-label { font-size: 9px; color: rgba(255,255,255,0.8); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
 
 /* ── Bait inventory strip ────────────────────────────────────────────────────── */
 .bait-inventory {
@@ -434,6 +438,27 @@ html, body, #root {
   animation: none;
 }
 .fish-btn.empty::before { display: none; }
+
+.empty-bait-toast {
+  position: fixed;
+  top: 56px;
+  left: 12px;
+  right: 12px;
+  z-index: 65;
+  background: linear-gradient(135deg, #1e3a5f, #0f2744);
+  border: 1px solid rgba(239,68,68,0.5);
+  border-radius: 10px;
+  color: #fca5a5;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 8px 14px;
+  text-align: center;
+  animation: toast-in 0.25s ease;
+}
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
 
 .fish-btn.casting {
   background: linear-gradient(145deg, #0ea5e9, #6366f1, #8b5cf6);
@@ -575,26 +600,28 @@ html, body, #root {
 
 /* ── Header actions row ──────────────────────────────────────────────────────── */
 .header-actions {
-  display: flex; align-items: center; gap: 6px;
+  display: flex; align-items: center; gap: 4px; flex-shrink: 0;
 }
 
 .gold-chip {
   display: flex; align-items: center; gap: 4px;
   background: linear-gradient(135deg, #f59e0b, #fbbf24);
-  border-radius: 20px; padding: 5px 11px;
+  border-radius: 20px; padding: 4px 9px;
   box-shadow: 0 3px 10px rgba(245,158,11,0.4);
+  flex-shrink: 0;
 }
-.gold-icon { font-size: 14px; }
-.gold-num  { font-size: 14px; font-weight: 900; color: #fff; }
+.gold-icon { font-size: 13px; }
+.gold-num  { font-size: 13px; font-weight: 900; color: #fff; white-space: nowrap; }
 
 .icon-btn {
-  width: 36px; height: 36px; border-radius: 50%;
-  border: none; cursor: pointer; font-size: 18px;
+  width: 32px; height: 32px; border-radius: 50%;
+  border: none; cursor: pointer; font-size: 16px;
   background: rgba(255,255,255,0.6);
   backdrop-filter: blur(8px);
   display: flex; align-items: center; justify-content: center;
   transition: transform 0.1s, background 0.1s;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  flex-shrink: 0;
 }
 .icon-btn:hover { transform: scale(1.1); background: rgba(255,255,255,0.85); }
 .icon-btn:active { transform: scale(0.93); }
