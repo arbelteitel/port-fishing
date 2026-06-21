@@ -20,7 +20,7 @@ html, body, #root {
 }
 
 .fs-card {
-  width: 260px; height: 260px;
+  width: 280px; height: 220px;
   border-radius: 24px;
   position: relative;
   overflow: hidden;
@@ -33,6 +33,43 @@ html, body, #root {
 @keyframes fs-card-in {
   0%   { transform: scale(0.7) translateY(30px); opacity: 0; }
   100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+/* Bait row inside the card */
+.fs-bait-row {
+  position: absolute; inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 16px;
+  z-index: 2;
+}
+
+.fs-bob-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: fs-slot-in 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes fs-slot-in {
+  0%   { transform: scale(0) translateY(20px); opacity: 0; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+/* Caught fish in slot */
+.fs-bob-caught {
+  animation: fs-bob-catch-pop 0.5s cubic-bezier(0.16, 1.11, 0.36, 1.1);
+}
+@keyframes fs-bob-catch-pop {
+  0%   { transform: scale(0.3) rotate(15deg); opacity: 0; }
+  50%  { transform: scale(1.2) rotate(-8deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+.fs-bob-caught-fish {
+  width: 48px !important;
+  height: 48px !important;
+  filter: drop-shadow(0 2px 8px rgba(0,0,0,0.3));
 }
 
 .fs-water-bg {
@@ -77,12 +114,6 @@ html, body, #root {
 }
 
 /* Bait bobbing */
-.fs-bait-area {
-  position: absolute;
-  left: 50%; top: 45%;
-  transform: translate(-50%, -50%);
-  display: flex; flex-direction: column; align-items: center;
-}
 .fs-bait-wrap {
   animation: fs-bait-bob 2s ease-in-out infinite;
   filter: drop-shadow(0 4px 10px rgba(0,0,0,0.3));
@@ -146,109 +177,49 @@ html, body, #root {
   100% { width: 80px; height: 30px; opacity: 0; }
 }
 
-/* Status labels */
-.fs-label {
-  position: absolute;
-  bottom: 28px; left: 50%;
-  transform: translateX(-50%);
-  padding: 6px 18px;
-  border-radius: 20px;
-  background: rgba(255,255,255,0.12);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255,255,255,0.15);
-  font-size: 13px; font-weight: 700;
-  color: rgba(255,255,255,0.8);
-  white-space: nowrap;
-  text-shadow: 0 1px 4px rgba(0,0,0,0.3);
-  animation: fs-label-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  letter-spacing: 0.3px;
-}
-.fs-label.nibble {
-  background: rgba(255,200,50,0.18);
-  border-color: rgba(255,200,50,0.35);
-  color: #ffd700;
-  font-size: 14px;
-  animation: fs-label-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), fs-label-pulse 0.7s ease-in-out infinite;
-}
-@keyframes fs-label-in {
-  from { opacity: 0; transform: translateX(-50%) translateY(6px) scale(0.9); }
-  to   { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
-}
-@keyframes fs-label-pulse {
-  0%, 100% { transform: translateX(-50%) scale(1); }
-  50%      { transform: translateX(-50%) scale(1.06); }
-}
-
-/* Catch reveal */
-.fs-reveal {
-  position: absolute; inset: 0;
+/* ── Catch log feed ──────────────────────────────────────────────────────────── */
+.catch-log {
+  position: fixed;
+  bottom: 12px; left: 12px; right: 12px;
+  z-index: 55;
   display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
   gap: 6px;
+  pointer-events: none;
 }
-.fs-reveal-burst {
-  position: absolute; inset: 0;
-  background: radial-gradient(circle at 50% 45%, var(--rarity-glow), transparent 60%);
-  animation: fs-burst-in 0.5s ease-out;
+.catch-log-entry {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 14px;
+  border-radius: 12px;
+  background: rgba(0,20,40,0.75);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-left: 3px solid var(--rarity-color);
+  animation: catch-log-in 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
 }
-@keyframes fs-burst-in {
-  0%   { opacity: 0; transform: scale(0.3); }
-  50%  { opacity: 1; transform: scale(1.2); }
-  100% { opacity: 0.7; transform: scale(1); }
+@keyframes catch-log-in {
+  0%   { opacity: 0; transform: translateX(-20px) scale(0.9); }
+  100% { opacity: 1; transform: translateX(0) scale(1); }
 }
-.fs-reveal-fish {
-  position: relative;
-  z-index: 2;
-  width: 72px; height: 72px;
-  display: flex; align-items: center; justify-content: center;
-  animation: fs-reveal-pop 0.6s cubic-bezier(0.16, 1.11, 0.36, 1.1);
-  filter: drop-shadow(0 4px 16px rgba(0,0,0,0.4))
-          drop-shadow(0 0 20px var(--rarity-glow));
+.catch-log-icon {
+  width: 28px !important; height: 28px !important;
+  flex-shrink: 0;
+  filter: drop-shadow(0 1px 4px rgba(0,0,0,0.3));
 }
-.fs-reveal-sprite {
-  width: 64px !important;
-  height: 64px !important;
+.catch-log-text {
+  font-size: 13px; color: rgba(255,255,255,0.85);
+  font-weight: 600;
+  flex: 1;
 }
-@keyframes fs-reveal-pop {
-  0%   { transform: scale(0.2) rotate(15deg) translateY(20px); opacity: 0; }
-  50%  { transform: scale(1.25) rotate(-8deg) translateY(-10px); opacity: 1; }
-  75%  { transform: scale(0.95) rotate(3deg) translateY(0); }
-  100% { transform: scale(1) rotate(0deg) translateY(0); opacity: 1; }
-}
-.fs-reveal-name {
-  position: relative; z-index: 2;
-  font-size: 18px; font-weight: 900;
-  color: #fff;
-  text-shadow: 0 2px 8px rgba(0,0,0,0.4);
-  animation: fs-text-up 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) 0.15s both;
-  letter-spacing: 0.3px;
-}
-.fs-reveal-rarity {
-  position: relative; z-index: 2;
-  font-size: 16px;
-  letter-spacing: 3px;
-  animation: fs-text-up 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) 0.25s both;
-}
-@keyframes fs-text-up {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-/* Sparkles (shared) */
-.fs-sparkle {
-  position: absolute;
-  width: var(--size);
-  height: var(--size);
-  background: white;
-  clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
-  animation: fs-sparkle-pop 0.7s ease-out forwards;
-  filter: drop-shadow(0 0 3px rgba(255,255,255,0.8));
-  z-index: 3;
-}
-@keyframes fs-sparkle-pop {
-  0%   { transform: scale(0) rotate(0deg); opacity: 0; }
-  40%  { transform: scale(1.4) rotate(100deg); opacity: 1; }
-  100% { transform: scale(0) rotate(200deg); opacity: 0; }
+.catch-log-new {
+  font-size: 10px; font-weight: 800;
+  color: #fbbf24;
+  background: rgba(251,191,36,0.15);
+  border: 1px solid rgba(251,191,36,0.3);
+  border-radius: 6px;
+  padding: 2px 6px;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
 }
 
 /* ── Bait inventory bottom sheet ─────────────────────────────────────────────── */
@@ -605,48 +576,7 @@ html, body, #root {
   100% { transform: translate(-50%,-50%) scale(3);   opacity: 0; }
 }
 
-/* ── Catch overlay ───────────────────────────────────────────────────────────── */
-.catch-overlay {
-  position: fixed; inset: 0; z-index: 100;
-  background: rgba(2,132,199,0.5);
-  backdrop-filter: blur(8px);
-  display: flex; align-items: center; justify-content: center;
-  animation: fade-in 0.2s ease;
-}
 @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
-
-.catch-card {
-  width: 290px;
-  background: #fff;
-  border-top: 6px solid var(--accent);
-  border-radius: 20px;
-  padding: 32px 24px 24px;
-  text-align: center;
-  box-shadow: 0 0 60px var(--glow), 0 24px 64px rgba(0,0,0,0.25);
-  animation: card-pop 0.35s cubic-bezier(0.34,1.56,0.64,1);
-}
-@keyframes card-pop {
-  0%   { transform: scale(0.7) translateY(20px); opacity: 0; }
-  100% { transform: scale(1)   translateY(0);    opacity: 1; }
-}
-
-.catch-fish-emoji    { font-size: 76px; line-height: 1.1; margin-bottom: 10px; display: flex; justify-content: center; }
-.catch-new-badge     { display: inline-block; background: linear-gradient(135deg,#f59e0b,#ef4444); color:#fff; font-size:12px; font-weight:800; padding:4px 12px; border-radius:20px; margin-bottom:10px; letter-spacing:0.5px; }
-.catch-rarity-stars  { font-size: 18px; color: var(--accent); margin-bottom: 6px; letter-spacing: 3px; }
-.catch-fish-name     { font-size: 24px; font-weight: 900; color: #0f172a; margin-bottom: 8px; }
-.catch-fish-desc     { font-size: 13px; color: #64748b; line-height: 1.5; margin-bottom: 24px; }
-
-.catch-ok-btn {
-  width: 100%; padding: 13px;
-  background: linear-gradient(135deg, #f97316, #ef4444);
-  border: none; border-radius: 12px;
-  color: #fff; font-size: 15px; font-weight: 800;
-  cursor: pointer; letter-spacing: 0.3px;
-  box-shadow: 0 4px 20px rgba(239,68,68,0.4);
-  transition: transform 0.1s, box-shadow 0.1s;
-}
-.catch-ok-btn:hover  { transform: scale(1.02); box-shadow: 0 6px 28px rgba(239,68,68,0.5); }
-.catch-ok-btn:active { transform: scale(0.97); }
 
 /* ── Header actions row ──────────────────────────────────────────────────────── */
 .header-actions {

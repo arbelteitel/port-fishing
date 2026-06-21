@@ -386,25 +386,6 @@ function BaitInventory({ inventory, selected, onSelect, onClose, closing, onClos
   );
 }
 
-// ── Catch reveal ──────────────────────────────────────────────────────────────
-
-function CatchReveal({ fish, onDismiss }) {
-  return (
-    <div className="catch-overlay" onClick={onDismiss}>
-      <div className="catch-card" style={{ "--accent": RARITY_COLORS[fish.rarity], "--glow": RARITY_GLOW[fish.rarity] }} onClick={e => e.stopPropagation()}>
-        <div className="catch-fish-emoji">
-          <img src={fish.img} alt={fish.name} className="fish-sprite" style={{ width: sizeToPx(fish.size), height: sizeToPx(fish.size) }} />
-        </div>
-        {fish.isNew && <div className="catch-new-badge">✨ NEW CATCH!</div>}
-        <div className="catch-rarity-stars" style={{ color: RARITY_COLORS[fish.rarity] }}>{"★".repeat(RARITY_RANK[fish.rarity])}{"☆".repeat(4 - RARITY_RANK[fish.rarity])}</div>
-        <div className="catch-fish-name">{fish.name}</div>
-        <div className="catch-fish-desc">{fish.description}</div>
-        <button className="catch-ok-btn" onClick={onDismiss}>Awesome! 🎉</button>
-      </div>
-    </div>
-  );
-}
-
 // ── Bag menu ──────────────────────────────────────────────────────────────────
 
 function BagMenu({ inventory, selectedBait, equippedRod, ownedRodIds, onSelectBait, onSelectRod, onClose, closing, onClosed }) {
