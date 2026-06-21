@@ -9,6 +9,7 @@ const POLL_INTERVAL_MINUTES = 5;
 
 chrome.runtime.onInstalled.addListener(() => {
   chrome.alarms.create(POLL_ALARM, { periodInMinutes: POLL_INTERVAL_MINUTES });
+  chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true });
   console.log("[Port Fishing] Installed - polling every", POLL_INTERVAL_MINUTES, "min");
 });
 

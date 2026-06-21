@@ -1,8 +1,7 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 html, body, #root {
-  width: 280px;
-  min-height: 320px;
+  width: 300px;
 }
 
 body {
@@ -11,13 +10,13 @@ body {
   color: #e6edf3;
 }
 
+/* ── Shared layout ─────────────────────────────────────────────────────────── */
 .popup {
-  width: 280px;
-  min-height: 320px;
-  padding: 16px;
+  width: 300px;
+  padding: 14px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
 }
 
 header {
@@ -26,155 +25,137 @@ header {
   justify-content: space-between;
 }
 
-header h1 {
-  font-size: 16px;
-  font-weight: 700;
-  color: #58a6ff;
-}
+header h1 { font-size: 15px; font-weight: 700; color: #58a6ff; }
+.username  { font-size: 12px; color: #8b949e; }
+.fish-count { font-size: 12px; color: #8b949e; }
 
-.settings-btn, .back-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 18px;
-  color: #8b949e;
-  padding: 2px 4px;
+.back-btn {
+  background: none; border: none; cursor: pointer;
+  font-size: 18px; color: #8b949e; padding: 2px 6px 2px 0;
 }
-.settings-btn:hover, .back-btn:hover { color: #e6edf3; }
+.back-btn:hover { color: #e6edf3; }
 
-/* Bait display */
+/* ── Bait display ──────────────────────────────────────────────────────────── */
 .bait-display {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: #161b22;
-  border-radius: 10px;
-  padding: 14px 16px;
-  border: 1px solid #30363d;
+  display: flex; align-items: center; gap: 10px;
+  background: #161b22; border-radius: 10px;
+  padding: 12px 14px; border: 1px solid #30363d;
 }
+.bait-count  { font-size: 34px; font-weight: 800; color: #58a6ff; line-height: 1; }
+.bait-label  { font-size: 13px; color: #8b949e; }
 
-.bait-count {
-  font-size: 36px;
-  font-weight: 800;
-  color: #58a6ff;
-  line-height: 1;
-}
-
-.bait-label {
-  font-size: 13px;
-  color: #8b949e;
-}
-
-/* Buttons */
+/* ── Buttons ───────────────────────────────────────────────────────────────── */
 .btn {
-  width: 100%;
-  padding: 10px 14px;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
+  width: 100%; padding: 10px 14px; border: none; border-radius: 8px;
+  font-size: 14px; font-weight: 600; cursor: pointer;
   transition: opacity 0.15s, transform 0.1s;
 }
-.btn:active { transform: scale(0.98); }
+.btn:active { transform: scale(0.97); }
 .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
-
-.btn.primary {
-  background: #1f6feb;
-  color: #fff;
-}
+.btn.primary { background: #1f6feb; color: #fff; }
 .btn.primary:hover:not(:disabled) { background: #388bfd; }
-
-.btn.secondary {
-  background: #21262d;
-  color: #c9d1d9;
-  border: 1px solid #30363d;
-}
+.btn.secondary { background: #21262d; color: #c9d1d9; border: 1px solid #30363d; }
 .btn.secondary:hover:not(:disabled) { background: #30363d; }
+.cast-btn { font-size: 15px; padding: 12px; }
+.secondary-actions { display: flex; flex-direction: column; gap: 8px; }
+.hint { font-size: 11px; color: #484f58; text-align: center; }
 
-.cast-btn { font-size: 16px; padding: 12px; }
-
-.secondary-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.hint {
-  font-size: 11px;
-  color: #484f58;
-  text-align: center;
-}
-
-/* No setup */
-.no-setup {
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 12px 0;
-  color: #8b949e;
-  font-size: 13px;
-}
-
-/* Settings form */
-.settings-form {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.settings-form label {
-  font-size: 12px;
-  color: #8b949e;
-  margin-bottom: -4px;
-}
-
-.settings-form input {
-  width: 100%;
-  padding: 8px 10px;
-  background: #161b22;
-  border: 1px solid #30363d;
-  border-radius: 6px;
-  color: #e6edf3;
-  font-size: 13px;
-}
-
-.settings-form input:focus {
-  outline: none;
-  border-color: #58a6ff;
-}
-
-.settings-msg {
-  font-size: 12px;
-  color: #3fb950;
-  text-align: center;
-}
-
-/* Result screen */
+/* ── Result screen ─────────────────────────────────────────────────────────── */
 .result-screen { align-items: center; }
-
 .fish-reveal {
+  width: 100%; text-align: center; padding: 18px 14px;
+  border: 2px solid; border-radius: 12px; background: #161b22;
+  display: flex; flex-direction: column; align-items: center; gap: 5px;
+  position: relative;
+}
+.fish-emoji-big { font-size: 60px; line-height: 1.1; }
+.fish-reveal h2 { font-size: 11px; letter-spacing: 2px; margin-top: 2px; }
+.fish-reveal h3 { font-size: 17px; font-weight: 700; }
+.fish-desc      { font-size: 11px; color: #8b949e; }
+.new-badge {
+  position: absolute; top: 10px; right: 10px;
+  background: #FF9800; color: #000; font-size: 10px;
+  font-weight: 800; padding: 2px 6px; border-radius: 4px;
+  letter-spacing: 0.5px;
+}
+.result-actions { width: 100%; display: flex; flex-direction: column; gap: 8px; }
+
+/* ── Aquarium screen ───────────────────────────────────────────────────────── */
+.aquarium-screen { gap: 0; padding: 14px 14px 0; }
+
+.tank {
+  position: relative;
   width: 100%;
-  text-align: center;
-  padding: 20px 16px;
-  border: 2px solid;
-  border-radius: 12px;
-  background: #161b22;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+  height: 180px;
+  margin-top: 10px;
+  background: linear-gradient(180deg, #0a1628 0%, #0d2240 60%, #0a1a30 100%);
+  border-radius: 10px 10px 0 0;
+  overflow: hidden;
+  border: 1px solid #1a3a5c;
+  border-bottom: none;
 }
 
-.fish-emoji { font-size: 56px; line-height: 1; }
-.fish-reveal h2 { font-size: 12px; letter-spacing: 2px; }
-.fish-reveal h3 { font-size: 18px; font-weight: 700; }
-.fish-desc { font-size: 12px; color: #8b949e; }
-.pool-label { font-size: 11px; color: #484f58; text-transform: capitalize; }
-
-.result-actions {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+.tank-floor {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 12px;
+  background: linear-gradient(180deg, #1a3a1a, #0d2010);
+  border-top: 1px solid #2a5a2a;
 }
+
+/* Swimming fish */
+@keyframes swim {
+  0%   { left: -60px;  transform: scaleX(1); }
+  49%  { left: 110%;   transform: scaleX(1); }
+  50%  { left: 110%;   transform: scaleX(-1); }
+  99%  { left: -60px;  transform: scaleX(-1); }
+  100% { left: -60px;  transform: scaleX(1); }
+}
+
+@keyframes bob {
+  0%, 100% { margin-top: 0px; }
+  50%       { margin-top: 6px; }
+}
+
+.swimming-fish {
+  position: absolute;
+  animation: swim linear infinite, bob ease-in-out infinite;
+  animation-duration: inherit;
+  cursor: default;
+  user-select: none;
+  will-change: left, transform;
+}
+
+/* Bubbles */
+@keyframes rise {
+  0%   { bottom: 12px; opacity: 0.6; transform: scale(0.5); }
+  100% { bottom: 95%;  opacity: 0;   transform: scale(1.2); }
+}
+
+.bubbles { position: absolute; inset: 0; pointer-events: none; }
+.bubble {
+  position: absolute; width: 5px; height: 5px;
+  border-radius: 50%; background: rgba(100, 180, 255, 0.3);
+  animation: rise 3.5s ease-in infinite;
+}
+
+/* Legend below tank */
+.legend {
+  background: #0d1117;
+  border: 1px solid #1a3a5c;
+  border-top: none;
+  border-radius: 0 0 10px 10px;
+  max-height: 160px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #21262d transparent;
+  margin-bottom: 14px;
+}
+
+.legend-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 5px 10px; border-bottom: 1px solid #161b22;
+}
+.legend-row:last-child { border-bottom: none; }
+.legend-emoji { font-size: 16px; width: 22px; text-align: center; }
+.legend-name  { font-size: 12px; color: #c9d1d9; flex: 1; }
+.legend-rarity { font-size: 10px; font-weight: 600; text-transform: capitalize; }

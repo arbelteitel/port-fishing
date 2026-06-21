@@ -6,18 +6,16 @@
   "permissions": ["storage", "alarms", "sidePanel"],
   "host_permissions": ["https://app.getport.io/*", "https://api.getport.io/*"],
   "background": {
-    "service_worker": "src/background/index.js",
+    "service_worker": "src/background/background.js",
     "type": "module"
   },
   "content_scripts": [
     {
       "matches": ["https://app.getport.io/*"],
-      "js": ["src/content/index.jsx"],
-      "css": ["src/content/content.css"]
+      "js": ["src/content/content.js"]
     }
   ],
   "action": {
-    "default_popup": "popup.html",
     "default_icon": {
       "16": "assets/icon16.png",
       "48": "assets/icon48.png",
@@ -25,7 +23,7 @@
     }
   },
   "side_panel": {
-    "default_path": "aquarium.html"
+    "default_path": "sidepanel.html"
   },
   "icons": {
     "16": "assets/icon16.png",
