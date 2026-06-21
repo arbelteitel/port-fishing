@@ -5,6 +5,170 @@ html, body, #root {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
+/* ── Fishing scene overlay ───────────────────────────────────────────────────── */
+.fishing-scene {
+  position: fixed; inset: 0; z-index: 80;
+  background: linear-gradient(180deg, #020c1b 0%, #041628 45%, #062240 70%, #083060 100%);
+  display: flex; flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+  animation: scene-in 0.3s ease;
+}
+@keyframes scene-in { from { opacity: 0; } to { opacity: 1; } }
+
+/* Sky */
+.scene-sky { position: absolute; top: 0; left: 0; right: 0; height: 45%; pointer-events: none; }
+.scene-moon { position: absolute; top: 12px; right: 24px; font-size: 28px; filter: drop-shadow(0 0 12px rgba(255,240,180,0.8)); }
+.scene-star {
+  position: absolute; font-size: 10px; color: rgba(255,255,255,0.7);
+  animation: twinkle 2s ease-in-out infinite;
+}
+@keyframes twinkle { 0%,100% { opacity: 0.4; } 50% { opacity: 1; } }
+
+/* Rod */
+.scene-rod-wrap {
+  position: absolute; top: 18%; right: 18%;
+  display: flex; flex-direction: column; align-items: flex-end;
+  transform-origin: bottom right;
+}
+.scene-rod-wrap.cast { animation: rod-cast 0.5s cubic-bezier(0.25,0.46,0.45,0.94) forwards; }
+.scene-rod-wrap.wait,
+.scene-rod-wrap.nibble,
+.scene-rod-wrap.strike,
+.scene-rod-wrap.splash { transform: rotate(-30deg); }
+
+@keyframes rod-cast {
+  0%   { transform: rotate(40deg); }
+  60%  { transform: rotate(-40deg); }
+  100% { transform: rotate(-30deg); }
+}
+.scene-rod-emoji { font-size: 42px; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.5)); }
+
+/* Line from rod to water */
+.scene-line {
+  position: absolute;
+  top: 36px; right: 10px;
+  width: 2px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.3));
+  transform-origin: top center;
+  animation: line-drop 0.4s ease-out forwards;
+}
+.scene-line.wait   { height: 140px; transform: rotate(12deg); }
+.scene-line.nibble { height: 140px; transform: rotate(12deg); }
+.scene-line.strike { height: 120px; transform: rotate(18deg); animation: line-taut 0.15s ease-in-out; }
+.scene-line.splash { height: 80px;  transform: rotate(5deg); }
+
+@keyframes line-drop {
+  0%   { height: 0; }
+  100% { height: 140px; }
+}
+@keyframes line-taut {
+  0%,100% { transform: rotate(18deg) scaleX(1); }
+  50%      { transform: rotate(20deg) scaleX(1.5); }
+}
+
+/* Water surface */
+.scene-water {
+  position: absolute;
+  bottom: 34%; left: 0; right: 0; height: 50px;
+}
+.wave {
+  position: absolute; left: -10%; right: -10%; height: 12px;
+  border-radius: 50%;
+  background: rgba(56,189,248,0.25);
+  animation: wave-roll 3s ease-in-out infinite;
+}
+.w1 { top: 0;  animation-delay: 0s;    animation-duration: 3.2s; }
+.w2 { top: 8px; animation-delay: -1s;  animation-duration: 2.8s; background: rgba(56,189,248,0.15); }
+.w3 { top: 16px; animation-delay: -2s; animation-duration: 3.6s; background: rgba(14,165,233,0.2); }
+@keyframes wave-roll {
+  0%,100% { transform: translateX(0) scaleY(1); }
+  50%      { transform: translateX(3%) scaleY(1.3); }
+}
+.scene-water.choppy .wave { animation-duration: 0.4s !important; }
+
+/* Below-water area */
+.scene-water::after {
+  content: "";
+  position: absolute; top: 20px; left: 0; right: 0; bottom: -200px;
+  background: linear-gradient(180deg, rgba(14,165,233,0.18) 0%, rgba(3,105,161,0.35) 100%);
+}
+
+/* Bobber */
+.scene-bobber {
+  position: absolute;
+  bottom: 30%; right: 28%;
+  display: flex; flex-direction: column; align-items: center;
+  gap: 0;
+}
+.bobber-stick {
+  width: 3px; height: 18px;
+  background: linear-gradient(180deg, #ef4444, #dc2626);
+  border-radius: 2px;
+}
+.bobber-ball {
+  width: 14px; height: 14px; border-radius: 50%;
+  background: linear-gradient(135deg, #ef4444 50%, #fff 50%);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+.scene-bobber.wait   { animation: bob-gentle 1.2s ease-in-out infinite; }
+.scene-bobber.nibble { animation: bob-nibble 0.2s ease-in-out infinite; }
+
+@keyframes bob-gentle {
+  0%,100% { transform: translateY(0); }
+  50%      { transform: translateY(5px); }
+}
+@keyframes bob-nibble {
+  0%,100% { transform: translateY(0); }
+  50%      { transform: translateY(14px); }
+}
+
+/* Splash */
+.scene-splash {
+  position: absolute;
+  bottom: 30%; right: 22%;
+  display: flex; align-items: center; justify-content: center;
+}
+.splash-drops { position: absolute; inset: 0; }
+.splash-drop {
+  position: absolute;
+  font-size: 16px;
+  top: 0; left: 50%;
+  animation: drop-fly 0.7s ease-out forwards;
+  transform-origin: center bottom;
+}
+@keyframes drop-fly {
+  0%   { transform: rotate(var(--angle)) translateY(0)   scale(1);   opacity: 1; }
+  100% { transform: rotate(var(--angle)) translateY(-50px) scale(0.5); opacity: 0; }
+}
+.splash-fish {
+  font-size: 48px;
+  animation: fish-leap 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  filter: drop-shadow(0 0 20px rgba(255,255,255,0.6));
+}
+@keyframes fish-leap {
+  0%   { transform: translateY(30px) rotate(0deg)   scale(0.5); opacity: 0; }
+  40%  { transform: translateY(-60px) rotate(-20deg) scale(1.2); opacity: 1; }
+  100% { transform: translateY(-40px) rotate(-15deg) scale(1);   opacity: 1; }
+}
+
+/* Status label */
+.scene-label {
+  position: absolute;
+  bottom: 16%; left: 50%; transform: translateX(-50%);
+  font-size: 15px; font-weight: 700; color: rgba(255,255,255,0.7);
+  letter-spacing: 0.3px; white-space: nowrap;
+  animation: label-pulse 1s ease-in-out infinite;
+}
+.scene-label.label-strike {
+  font-size: 22px; font-weight: 900;
+  color: #fbbf24;
+  animation: strike-flash 0.15s ease-in-out 3;
+  text-shadow: 0 0 20px rgba(251,191,36,0.8);
+}
+@keyframes label-pulse  { 0%,100% { opacity: 0.7; } 50% { opacity: 1; } }
+@keyframes strike-flash { 0%,100% { opacity: 1; transform: translateX(-50%) scale(1); } 50% { opacity: 0.5; transform: translateX(-50%) scale(1.1); } }
+
 /* ── Panel shell ─────────────────────────────────────────────────────────────── */
 .panel {
   display: flex;

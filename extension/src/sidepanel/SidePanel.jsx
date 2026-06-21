@@ -4,7 +4,38 @@ import "./sidepanel.css";
 const RARITY_COLORS = { common: "#94a3b8", uncommon: "#22c55e", rare: "#38bdf8", legendary: "#f59e0b" };
 const RARITY_GLOW   = { common: "rgba(148,163,184,0.5)", uncommon: "rgba(34,197,94,0.6)", rare: "rgba(56,189,248,0.6)", legendary: "rgba(245,158,11,0.7)" };
 const RARITY_RANK   = { legendary: 4, rare: 3, uncommon: 2, common: 1 };
-const sizeToSpeed = (size) => 28 / size; // whale(52)→0.54, clownfish(20)→1.4
+const sizeToSpeed   = (size) => 28 / size;
+
+// ── Bait system ───────────────────────────────────────────────────────────────
+
+const BAIT_TYPES = [
+  { id: "worm",    name: "Common Worm",    emoji: "🪱", rarity: "common",    boost: 0,    description: "Gets the job done. Barely." },
+  { id: "lure",    name: "Shiny Lure",     emoji: "🪝", rarity: "uncommon",  boost: 0.2,  description: "Flashy enough to attract better fish." },
+  { id: "golden",  name: "Golden Hook",    emoji: "✨", rarity: "rare",      boost: 0.45, description: "Rare fish find it irresistible." },
+  { id: "chum",    name: "Legendary Chum", emoji: "🌟", rarity: "legendary", boost: 0.75, description: "Dark arts. Almost guarantees something extraordinary." },
+];
+
+function getRarityWeights(boost = 0) {
+  return {
+    common:    Math.max(4,  60 - boost * 48),
+    uncommon:  Math.max(4,  25 - boost * 12),
+    rare:      12 + boost * 28,
+    legendary:  3 + boost * 32,
+  };
+}
+
+function oddsPercent(boost) {
+  const w = getRarityWeights(boost);
+  const t = Object.values(w).reduce((a, b) => a + b, 0);
+  return Object.fromEntries(Object.entries(w).map(([k, v]) => [k, Math.round(v / t * 100)]));
+}
+
+const MOCK_BAIT_INVENTORY = [
+  { ...BAIT_TYPES[0], count: 8 },
+  { ...BAIT_TYPES[1], count: 3 },
+  { ...BAIT_TYPES[2], count: 1 },
+  { ...BAIT_TYPES[3], count: 0 },
+];
 
 const ALL_FISH = [
   { id: "coelacanth", name: "Coelacanth",  emoji: "🦖", rarity: "legendary", size: 44, description: "Ancient platform fish. Survives every breaking change." },
@@ -208,6 +239,95 @@ function Aquarium({ fish }) {
   );
 }
 
+// ── Fishing scene animation ───────────────────────────────────────────────────
+
+const SCENE_PHASES = ['cast', 'wait', 'nibble', 'strike', 'splash'];
+
+function FishingScene({ onDone }) {
+  const [phase, setPhase] = useState('cast');
+  const [splashFish, setSplashFish] = useState(null);
+
+  useEffect(() => {
+    // Pre-roll the fish so we can show it flying out during splash
+    const weights = ALL_FISH.map(f => ({ legendary: 3, rare: 12, uncommon: 25, common: 60 }[f.rarity]));
+    const total   = weights.reduce((a, b) => a + b, 0);
+    let roll = Math.random() * total;
+    let fish = ALL_FISH[ALL_FISH.length - 1];
+    for (let i = 0; i < ALL_FISH.length; i++) { roll -= weights[i]; if (roll <= 0) { fish = ALL_FISH[i]; break; } }
+    setSplashFish(fish);
+
+    const waitMs = 1200 + Math.random() * 1800; // 1.2–3s of suspense
+
+    const t1 = setTimeout(() => setPhase('wait'),   600);
+    const t2 = setTimeout(() => setPhase('nibble'), 600 + waitMs);
+    const t3 = setTimeout(() => setPhase('strike'), 600 + waitMs + 500);
+    const t4 = setTimeout(() => setPhase('splash'), 600 + waitMs + 900);
+    const t5 = setTimeout(() => onDone(fish),       600 + waitMs + 900 + 900);
+
+    return () => [t1, t2, t3, t4, t5].forEach(clearTimeout);
+  }, []);
+
+  const phaseLabel = {
+    cast:   'Casting…',
+    wait:   'Waiting…',
+    nibble: "Something's biting...",
+    strike: 'STRIKE! 🎯',
+    splash: '',
+  }[phase];
+
+  return (
+    <div className="fishing-scene">
+      {/* Night sky */}
+      <div className="scene-sky">
+        <span className="scene-moon">🌙</span>
+        {['✦','✦','✧','✦','✧'].map((s, i) => (
+          <span key={i} className="scene-star" style={{ left: `${10 + i * 18}%`, top: `${8 + (i % 3) * 10}%`, animationDelay: `${i * 0.4}s` }}>{s}</span>
+        ))}
+      </div>
+
+      {/* Rod + line */}
+      <div className={`scene-rod-wrap ${phase}`}>
+        <div className="scene-rod-emoji">🎣</div>
+        {phase !== 'cast' && (
+          <div className={`scene-line ${phase}`} />
+        )}
+      </div>
+
+      {/* Water surface */}
+      <div className={`scene-water ${phase === 'strike' || phase === 'splash' ? 'choppy' : ''}`}>
+        <div className="wave w1" /><div className="wave w2" /><div className="wave w3" />
+      </div>
+
+      {/* Bobber */}
+      {(phase === 'wait' || phase === 'nibble') && (
+        <div className={`scene-bobber ${phase}`}>
+          <div className="bobber-stick" />
+          <div className="bobber-ball" />
+        </div>
+      )}
+
+      {/* Splash + fish reveal */}
+      {phase === 'splash' && splashFish && (
+        <div className="scene-splash">
+          <div className="splash-drops">
+            {['💧','💧','💧','💧','💧','💧'].map((d, i) => (
+              <span key={i} className="splash-drop" style={{ '--angle': `${-60 + i * 24}deg`, animationDelay: `${i * 0.04}s` }}>{d}</span>
+            ))}
+          </div>
+          <div className="splash-fish">{splashFish.emoji}</div>
+        </div>
+      )}
+
+      {/* Status label */}
+      {phaseLabel && (
+        <div className={`scene-label ${phase === 'strike' ? 'label-strike' : ''}`}>
+          {phaseLabel}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Catch reveal ──────────────────────────────────────────────────────────────
 
 function CatchReveal({ fish, onDismiss }) {
@@ -230,9 +350,9 @@ function CatchReveal({ fish, onDismiss }) {
 export default function SidePanel() {
   const [catches, setCatches]         = useState(MOCK_CATCHES);
   const [baitCount, setBaitCount]     = useState(5);
-  const [casting, setCasting]         = useState(false);
+  const [fishing, setFishing]         = useState(false);
   const [catchResult, setCatchResult] = useState(null);
-  const [ripple, setRipple]           = useState(false);
+  const caughtIds = new Set(catches.map(f => f.id));
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -241,31 +361,24 @@ export default function SidePanel() {
     return () => clearInterval(id);
   }, []);
 
-  const top10    = [...catches].sort((a, b) => RARITY_RANK[b.rarity] - RARITY_RANK[a.rarity]).slice(0, 10);
-  const caughtIds = new Set(catches.map(f => f.id));
+  const top10 = [...catches].sort((a, b) => RARITY_RANK[b.rarity] - RARITY_RANK[a.rarity]).slice(0, 10);
 
-  async function goFish() {
-    if (baitCount === 0 || casting) return;
-    setCasting(true);
-    setRipple(true);
-    setTimeout(() => setRipple(false), 700);
-    await new Promise(r => setTimeout(r, 1000));
+  function goFish() {
+    if (baitCount === 0 || fishing) return;
+    setBaitCount(c => Math.max(0, c - 1));
+    setFishing(true);
+  }
 
-    const weights = ALL_FISH.map(f => ({ legendary: 3, rare: 12, uncommon: 25, common: 60 }[f.rarity]));
-    const total   = weights.reduce((a, b) => a + b, 0);
-    let roll = Math.random() * total;
-    let fish = ALL_FISH[ALL_FISH.length - 1];
-    for (let i = 0; i < ALL_FISH.length; i++) { roll -= weights[i]; if (roll <= 0) { fish = ALL_FISH[i]; break; } }
-
+  function onSceneDone(fish) {
     const isNew = !caughtIds.has(fish.id);
     setCatches(prev => prev.find(f => f.id === fish.id) ? prev : [{ ...fish }, ...prev]);
-    setBaitCount(c => Math.max(0, c - 1));
-    setCasting(false);
+    setFishing(false);
     setCatchResult({ ...fish, isNew });
   }
 
   return (
     <div className="panel">
+      {fishing    && <FishingScene onDone={onSceneDone} />}
       {catchResult && <CatchReveal fish={catchResult} onDismiss={() => setCatchResult(null)} />}
 
       <header className="panel-header">
@@ -285,12 +398,12 @@ export default function SidePanel() {
 
       <div className="btn-section">
         <button
-          className={`fish-btn ${casting ? "casting" : ""} ${baitCount === 0 ? "empty" : ""} ${ripple ? "ripple" : ""}`}
+          className={`fish-btn ${baitCount === 0 ? "empty" : ""}`}
           onClick={goFish}
-          disabled={baitCount === 0 || casting}
+          disabled={baitCount === 0 || fishing}
         >
-          <span className="fish-btn-icon">{casting ? "🌊" : "🎣"}</span>
-          <span className="fish-btn-label">{casting ? "Casting…" : baitCount === 0 ? "No bait" : "Fish!"}</span>
+          <span className="fish-btn-icon">🎣</span>
+          <span className="fish-btn-label">{baitCount === 0 ? "No bait" : "Fish!"}</span>
         </button>
       </div>
 
